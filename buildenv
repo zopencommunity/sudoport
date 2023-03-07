@@ -1,0 +1,36 @@
+export ZOPEN_GIT_URL="https://github.com/sudo-project/sudo.git"
+export ZOPEN_GIT_DEPS="make"
+export ZOPEN_TARBALL_URL="https://www.sudo.ws/dist/sudo-1.9.13p2.tar.gz"
+export ZOPEN_TARBALL_DEPS="make coreutils zoslib"
+export ZOPEN_TYPE="TARBALL"
+export ZOPEN_MAKE_MINIMAL="yes"
+export ZOPEN_MAKE_OPTS="-j$NUM_JOBS HOSTCC=xlclang"
+
+zopen_check_results()
+{
+  dir="$1"
+  pfx="$2"
+  chk="$1/$2_check.log"
+
+  # Echo the following information to gauge build health
+  echo "actualFailures:0"
+  echo "totalTests:1"
+  echo "expectedFailures:0"
+}
+
+zopen_append_to_env()
+{
+  # echo envars outside of PATH, MANPATH, LIBPATH
+}
+
+zopen_append_to_setup()
+{
+  # echo commands that will run when installing via setup.sh
+}
+
+zopen_get_version()
+{
+  # Modify to echo the version of your tool/library
+  # Rather than hardcoding the version, obtain the version by running the tool/library
+  echo "1.0.0"
+}

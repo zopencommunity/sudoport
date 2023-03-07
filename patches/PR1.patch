@@ -1,0 +1,329 @@
+diff --git a/include/sudo_iolog.h b/include/sudo_iolog.h
+index 5994241..da5e529 100644
+--- a/include/sudo_iolog.h
++++ b/include/sudo_iolog.h
+@@ -20,6 +20,7 @@
+ #define SUDO_IOLOG_H
+ 
+ #include <sys/types.h>	/* for gid_t, mode_t, size_t, ssize_t, uid_t */
++#include <time.h>
+ 
+ #ifdef HAVE_ZLIB_H
+ # include <zlib.h>	/* for gzFile */
+diff --git a/lib/util/getentropy.c b/lib/util/getentropy.c
+index dc5c91c..34198f8 100644
+--- a/lib/util/getentropy.c
++++ b/lib/util/getentropy.c
+@@ -29,7 +29,9 @@
+ 
+ #ifndef HAVE_GETENTROPY
+ 
++#ifndef __MVS__
+ #include <sys/param.h>
++#endif
+ #include <sys/mman.h>
+ #include <sys/resource.h>
+ #include <sys/socket.h>
+diff --git a/lib/util/mmap_alloc.c b/lib/util/mmap_alloc.c
+index cd678a0..c1767d9 100644
+--- a/lib/util/mmap_alloc.c
++++ b/lib/util/mmap_alloc.c
+@@ -35,6 +35,7 @@
+ #elif defined(HAVE_INTTYPES_H)
+ # include <inttypes.h>
+ #endif
++#include <fcntl.h>
+ 
+ #include "sudo_compat.h"
+ #include "sudo_util.h"
+diff --git a/lib/util/pw_dup.c b/lib/util/pw_dup.c
+index ccd2fbb..787e96b 100644
+--- a/lib/util/pw_dup.c
++++ b/lib/util/pw_dup.c
+@@ -66,11 +66,13 @@ sudo_pw_dup(const struct passwd *pw)
+ 	/* Allocate in one big chunk for easy freeing */
+ 	total = sizeof(struct passwd);
+ 	PW_SIZE(pw_name, nsize);
++#ifndef __MVS__
+ 	PW_SIZE(pw_passwd, psize);
++	PW_SIZE(pw_gecos, gsize);
++#endif
+ #ifdef HAVE_LOGIN_CAP_H
+ 	PW_SIZE(pw_class, csize);
+ #endif
+-	PW_SIZE(pw_gecos, gsize);
+ 	PW_SIZE(pw_dir, dsize);
+ 	PW_SIZE(pw_shell, ssize);
+ 
+@@ -86,11 +88,13 @@ sudo_pw_dup(const struct passwd *pw)
+ 	cp += sizeof(struct passwd);
+ 
+ 	PW_COPY(pw_name, nsize);
++#ifndef __MVS__
+ 	PW_COPY(pw_passwd, psize);
++	PW_COPY(pw_gecos, gsize);
++#endif
+ #ifdef HAVE_LOGIN_CAP_H
+ 	PW_COPY(pw_class, csize);
+ #endif
+-	PW_COPY(pw_gecos, gsize);
+ 	PW_COPY(pw_dir, dsize);
+ 	PW_COPY(pw_shell, ssize);
+ 
+diff --git a/lib/util/ttyname_dev.c b/lib/util/ttyname_dev.c
+index 08b9777..2312854 100644
+--- a/lib/util/ttyname_dev.c
++++ b/lib/util/ttyname_dev.c
+@@ -30,8 +30,10 @@
+ #elif defined(MAJOR_IN_SYSMACROS)
+ # include <sys/sysmacros.h>
+ #else
++#ifndef __MVS__
+ # include <sys/param.h>
+ #endif
++#endif
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+diff --git a/plugins/group_file/getgrent.c b/plugins/group_file/getgrent.c
+index f37fb0e..2323c15 100644
+--- a/plugins/group_file/getgrent.c
++++ b/plugins/group_file/getgrent.c
+@@ -130,7 +130,9 @@ next_entry:
+     if ((colon = strchr(cp = colon, ':')) == NULL)
+ 	goto next_entry;
+     *colon++ = '\0';
++#ifndef __MVS__
+     gr.gr_passwd = cp;
++#endif
+     if ((colon = strchr(cp = colon, ':')) == NULL)
+ 	goto next_entry;
+     *colon++ = '\0';
+diff --git a/plugins/sudoers/cvtsudoers_pwutil.c b/plugins/sudoers/cvtsudoers_pwutil.c
+index 6b30d03..201712b 100644
+--- a/plugins/sudoers/cvtsudoers_pwutil.c
++++ b/plugins/sudoers/cvtsudoers_pwutil.c
+@@ -126,7 +126,9 @@ cvtsudoers_make_pwitem(uid_t uid, const char *name)
+     /* Fake up a passwd struct. */
+     memset(&pw, 0, sizeof(pw));
+     pw.pw_name = name ? s->str : uidstr;
++#ifndef __MVS__
+     pw.pw_passwd = (char *)"*";
++#endif
+     pw.pw_uid = uid;
+     pw.pw_gid = (gid_t)-1;
+     pw.pw_shell = (char *)_PATH_BSHELL;
+@@ -135,11 +137,13 @@ cvtsudoers_make_pwitem(uid_t uid, const char *name)
+     /* Allocate in one big chunk for easy freeing. */
+     total = sizeof(*pwitem);
+     FIELD_SIZE(&pw, pw_name, nsize);
++#ifndef __MVS__
+     FIELD_SIZE(&pw, pw_passwd, psize);
++    FIELD_SIZE(&pw, pw_gecos, gsize);
++#endif
+ #ifdef HAVE_LOGIN_CAP_H
+     FIELD_SIZE(&pw, pw_class, csize);
+ #endif
+-    FIELD_SIZE(&pw, pw_gecos, gsize);
+     FIELD_SIZE(&pw, pw_dir, dsize);
+     FIELD_SIZE(&pw, pw_shell, ssize);
+     if (name != NULL)
+@@ -160,11 +164,13 @@ cvtsudoers_make_pwitem(uid_t uid, const char *name)
+     memcpy(newpw, &pw, sizeof(pw));
+     cp = (char *)(pwitem + 1);
+     FIELD_COPY(&pw, newpw, pw_name, nsize);
++#ifndef __MVS__
+     FIELD_COPY(&pw, newpw, pw_passwd, psize);
++    FIELD_COPY(&pw, newpw, pw_gecos, gsize);
++#endif
+ #ifdef HAVE_LOGIN_CAP_H
+     FIELD_COPY(&pw, newpw, pw_class, csize);
+ #endif
+-    FIELD_COPY(&pw, newpw, pw_gecos, gsize);
+     FIELD_COPY(&pw, newpw, pw_dir, dsize);
+     FIELD_COPY(&pw, newpw, pw_shell, ssize);
+ 
+@@ -237,7 +243,9 @@ cvtsudoers_make_gritem(gid_t gid, const char *name)
+     /* Allocate in one big chunk for easy freeing. */
+     total = sizeof(*gritem);
+     FIELD_SIZE(&gr, gr_name, nsize);
++#ifndef __MVS__
+     FIELD_SIZE(&gr, gr_passwd, psize);
++#endif
+     if (!STAILQ_EMPTY(&filters->users)) {
+ 	STAILQ_FOREACH(s, &filters->users, entries) {
+ 	    total += strlen(s->str) + 1;
+@@ -274,7 +282,9 @@ cvtsudoers_make_gritem(gid_t gid, const char *name)
+ 	}
+ 	newgr->gr_mem[nmem] = NULL;
+     }
++#ifndef __MVS__
+     FIELD_COPY(&gr, newgr, gr_passwd, psize);
++#endif
+     FIELD_COPY(&gr, newgr, gr_name, nsize);
+ 
+     /* Set key and datum. */
+diff --git a/plugins/sudoers/getspwuid.c b/plugins/sudoers/getspwuid.c
+index 650b3f3..822f56d 100644
+--- a/plugins/sudoers/getspwuid.c
++++ b/plugins/sudoers/getspwuid.c
+@@ -107,7 +107,12 @@ sudo_getepw(const struct passwd *pw)
+ done:
+ #endif
+     /* If no shadow password, fall back on regular password. */
+-    debug_return_str(strdup(epw ? epw : pw->pw_passwd));
++    debug_return_str(strdup(epw ? epw : 
++#ifdef __MVS__
++""));
++#else
++pw->pw_passwd));
++#endif
+ }
+ 
+ void
+diff --git a/plugins/sudoers/pwutil.c b/plugins/sudoers/pwutil.c
+index 0dd8968..0fadb5b 100644
+--- a/plugins/sudoers/pwutil.c
++++ b/plugins/sudoers/pwutil.c
+@@ -380,11 +380,13 @@ sudo_mkpwent(const char *user, uid_t uid, gid_t gid, const char *home,
+ 	pw->pw_gid = gid;
+ 	pw->pw_name = (char *)(pwitem + 1);
+ 	memcpy(pw->pw_name, user, name_len + 1);
++#ifndef __MVS__
+ 	pw->pw_passwd = pw->pw_name + name_len + 1;
+ 	memcpy(pw->pw_passwd, "*", 2);
+ 	pw->pw_gecos = pw->pw_passwd + 2;
+ 	pw->pw_gecos[0] = '\0';
+ 	pw->pw_dir = pw->pw_gecos + 1;
++#endif
+ 	memcpy(pw->pw_dir, home, home_len + 1);
+ 	pw->pw_shell = pw->pw_dir + home_len + 1;
+ 	memcpy(pw->pw_shell, shell, shell_len + 1);
+@@ -686,7 +688,9 @@ sudo_mkgrent(const char *group, gid_t gid, ...)
+ 	}
+ 	gr = &gritem->gr;
+ 	gr->gr_gid = gid;
++#ifndef __MVS__
+ 	gr->gr_passwd = (char *)"*";
++#endif
+ 	cp = (char *)(gritem + 1);
+ 	gr->gr_mem = (char **)cp;
+ 	cp += sizeof(char *) * nmem;
+diff --git a/plugins/sudoers/pwutil_impl.c b/plugins/sudoers/pwutil_impl.c
+index 199cb5e..9a68b8f 100644
+--- a/plugins/sudoers/pwutil_impl.c
++++ b/plugins/sudoers/pwutil_impl.c
+@@ -102,11 +102,13 @@ sudo_make_pwitem(uid_t uid, const char *name)
+     /* Allocate in one big chunk for easy freeing. */
+     total = sizeof(*pwitem);
+     FIELD_SIZE(pw, pw_name, nsize);
++#ifndef __MVS__
+     FIELD_SIZE(pw, pw_passwd, psize);
++    FIELD_SIZE(pw, pw_gecos, gsize);
++#endif
+ #ifdef HAVE_LOGIN_CAP_H
+     FIELD_SIZE(pw, pw_class, csize);
+ #endif
+-    FIELD_SIZE(pw, pw_gecos, gsize);
+     FIELD_SIZE(pw, pw_dir, dsize);
+     /* Treat shell specially since we expand "" -> _PATH_BSHELL */
+     ssize = strlen(pw_shell) + 1;
+@@ -129,11 +131,13 @@ sudo_make_pwitem(uid_t uid, const char *name)
+     memcpy(newpw, pw, sizeof(*pw));
+     cp = (char *)(pwitem + 1);
+     FIELD_COPY(pw, newpw, pw_name, nsize);
++#ifndef __MVS__
+     FIELD_COPY(pw, newpw, pw_passwd, psize);
++    FIELD_COPY(pw, newpw, pw_gecos, gsize);
++#endif
+ #ifdef HAVE_LOGIN_CAP_H
+     FIELD_COPY(pw, newpw, pw_class, csize);
+ #endif
+-    FIELD_COPY(pw, newpw, pw_gecos, gsize);
+     FIELD_COPY(pw, newpw, pw_dir, dsize);
+     /* Treat shell specially since we expand "" -> _PATH_BSHELL */
+     memcpy(cp, pw_shell, ssize);
+@@ -179,7 +183,9 @@ sudo_make_gritem(gid_t gid, const char *name)
+     /* Allocate in one big chunk for easy freeing. */
+     total = sizeof(*gritem);
+     FIELD_SIZE(gr, gr_name, nsize);
++#ifndef __MVS__
+     FIELD_SIZE(gr, gr_passwd, psize);
++#endif
+     if (gr->gr_mem) {
+ 	for (nmem = 0; gr->gr_mem[nmem] != NULL; nmem++)
+ 	    total += strlen(gr->gr_mem[nmem]) + 1;
+@@ -214,7 +220,9 @@ sudo_make_gritem(gid_t gid, const char *name)
+ 	}
+ 	newgr->gr_mem[nmem] = NULL;
+     }
++#ifndef __MVS__
+     FIELD_COPY(gr, newgr, gr_passwd, psize);
++#endif
+     FIELD_COPY(gr, newgr, gr_name, nsize);
+ 
+     /* Set key and datum. */
+diff --git a/plugins/sudoers/tsgetgrpw.c b/plugins/sudoers/tsgetgrpw.c
+index 19fb798..33e8a15 100644
+--- a/plugins/sudoers/tsgetgrpw.c
++++ b/plugins/sudoers/tsgetgrpw.c
+@@ -136,7 +136,9 @@ next_entry:
+     if ((colon = strchr(cp = colon, ':')) == NULL)
+ 	goto next_entry;
+     *colon++ = '\0';
++#ifndef __MVS__
+     pw.pw_passwd = cp;
++#endif
+     if ((colon = strchr(cp = colon, ':')) == NULL)
+ 	goto next_entry;
+     *colon++ = '\0';
+@@ -154,7 +156,10 @@ next_entry:
+     if ((colon = strchr(cp = colon, ':')) == NULL)
+ 	goto next_entry;
+     *colon++ = '\0';
++
++#ifndef __MVS__
+     pw.pw_gecos = cp;
++#endif
+     if ((colon = strchr(cp = colon, ':')) == NULL)
+ 	goto next_entry;
+     *colon++ = '\0';
+@@ -280,7 +285,9 @@ next_entry:
+     if ((colon = strchr(cp = colon, ':')) == NULL)
+ 	goto next_entry;
+     *colon++ = '\0';
++#ifndef __MVS__
+     gr.gr_passwd = cp;
++#endif
+     if ((colon = strchr(cp = colon, ':')) == NULL)
+ 	goto next_entry;
+     *colon++ = '\0';
+diff --git a/src/net_ifs.c b/src/net_ifs.c
+index 68c2145..3132279 100644
+--- a/src/net_ifs.c
++++ b/src/net_ifs.c
+@@ -60,8 +60,10 @@ struct rtentry;
+ #endif /* NEED_RESOLV_H */
+ #include <net/if.h>
+ #ifdef HAVE_GETIFADDRS
++#ifndef __MVS__
+ # include <ifaddrs.h>
+ #endif
++#endif
+ 
+ #define NEED_INET_NTOP		/* to expose sudo_inet_ntop in sudo_compat.h */
+ 
+diff --git a/src/sudo.c b/src/sudo.c
+index a8a18bb..ea6b2b3 100644
+--- a/src/sudo.c
++++ b/src/sudo.c
+@@ -496,6 +496,9 @@ done:
+  * Return user information as an array of name=value pairs.
+  * and fill in struct user_details (which shares the same strings).
+  */
++#ifdef __MVS__
++#define RLIM_NLIMITS 10
++#endif
+ static char **
+ get_user_info(struct user_details *ud)
+ {
