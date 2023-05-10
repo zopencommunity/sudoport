@@ -1,3 +1,42 @@
+diff --git a/configure b/configure
+index d406eb7..e484091 100755
+--- a/configure
++++ b/configure
+@@ -10183,6 +10183,10 @@ aix[4-9]*)
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+ 
++openedition)
++  lt_cv_deplibs_check_method=pass_all
++  ;;
++
+ beos*)
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+diff --git a/examples/Makefile.in b/examples/Makefile.in
+index 706e6cc..8f5ba6d 100644
+--- a/examples/Makefile.in
++++ b/examples/Makefile.in
+@@ -91,12 +91,13 @@ install-binaries:
+ install-includes:
+ 
+ install-doc: install-dirs
+-	for f in $(EXAMPLES); do $(INSTALL) $(INSTALL_OWNER) -m 0644 $$f $(DESTDIR)$(exampledir); done
+-	test -r $(DESTDIR)$(sysconfdir)/sudo.conf || \
+-	    $(INSTALL) $(INSTALL_OWNER) -m 0644 sudo.conf $(DESTDIR)$(sysconfdir)
+-	if test -n "$(LOGSRVD_CONF)" -a ! -r $(DESTDIR)$(sysconfdir)/sudo_logsrvd.conf; then \
+-	    $(INSTALL) $(INSTALL_OWNER) -m 0644 $(LOGSRVD_CONF) $(DESTDIR)$(sysconfdir); \
+-	fi
++	for f in $(EXAMPLES); do $(INSTALL) $(INSTALL_OWNER) -m 0644 $$f $(DESTDIR)$(exampledir); done \
++       # z/OS: Don't copy anything into "/etc" as we don't have root privileges at that moment. 
++#      test -r $(DESTDIR)$(sysconfdir)/sudo.conf || \
++#          $(INSTALL) $(INSTALL_OWNER) -m 0644 sudo.conf $(DESTDIR)$(sysconfdir)
++#      if test -n "$(LOGSRVD_CONF)" -a ! -r $(DESTDIR)$(sysconfdir)/sudo_logsrvd.conf; then \
++#          $(INSTALL) $(INSTALL_OWNER) -m 0644 $(LOGSRVD_CONF) $(DESTDIR)$(sysconfdir); \
++#      fi
+ 
+ install-plugin:
+ 
 diff --git a/include/sudo_iolog.h b/include/sudo_iolog.h
 index 5994241..da5e529 100644
 --- a/include/sudo_iolog.h
@@ -10,8 +49,56 @@ index 5994241..da5e529 100644
  
  #ifdef HAVE_ZLIB_H
  # include <zlib.h>	/* for gzFile */
+diff --git a/lib/eventlog/Makefile.in b/lib/eventlog/Makefile.in
+index cd713c4..783571f 100644
+--- a/lib/eventlog/Makefile.in
++++ b/lib/eventlog/Makefile.in
+@@ -49,7 +49,7 @@ LTFLAGS = @LT_STATIC@
+ 
+ # Libraries
+ LT_LIBS = $(top_builddir)/lib/util/libsudo_util.la
+-LIBS = $(LT_LIBS)
++LIBS = $(LT_LIBS) @LIBS@
+ 
+ # Address sanitizer flags
+ ASAN_CFLAGS = @ASAN_CFLAGS@
+diff --git a/lib/iolog/Makefile.in b/lib/iolog/Makefile.in
+index 61bc058..ab00c6f 100644
+--- a/lib/iolog/Makefile.in
++++ b/lib/iolog/Makefile.in
+@@ -40,7 +40,7 @@ SED = @SED@
+ 
+ # Libraries
+ LT_LIBS = $(top_builddir)/lib/util/libsudo_util.la
+-LIBS = @LIBS@ @ZLIB@ $(LT_LIBS)
++LIBS = @LIBS@ @ZLIB@ $(LT_LIBS) @LIBS@
+ 
+ # C preprocessor flags
+ CPPFLAGS = -I$(incdir) -I$(top_builddir) -I$(srcdir) @CPPFLAGS@
+diff --git a/lib/util/Makefile.in b/lib/util/Makefile.in
+index 7898eec..577b248 100644
+--- a/lib/util/Makefile.in
++++ b/lib/util/Makefile.in
+@@ -117,7 +117,7 @@ TEST_PROGS = conf_test getgids getgrouplist_test hexchar_test hltq_test \
+ 	     strtobool_test strtoid_test strtomode_test strtonum_test \
+ 	     uuid_test @COMPAT_TEST_PROGS@
+ 
+-TEST_LIBS = @LIBS@
++TEST_LIBS = @LIBS@ @LIBS@
+ TEST_LDFLAGS = @LDFLAGS@
+ TEST_VERBOSE =
+ HARNESS = $(SHELL) regress/harness $(TEST_VERBOSE)
+@@ -127,7 +127,7 @@ LIBFUZZSTUB = $(top_builddir)/lib/fuzzstub/libsudo_fuzzstub.la
+ LIB_FUZZING_ENGINE = @FUZZ_ENGINE@
+ FUZZ_PROGS = fuzz_sudo_conf
+ FUZZ_SEED_CORPUS = ${FUZZ_PROGS:=_seed_corpus.zip}
+-FUZZ_LIBS = $(LIB_FUZZING_ENGINE) @LIBS@
++FUZZ_LIBS = $(LIB_FUZZING_ENGINE) @LIBS@ @LIBS@
+ FUZZ_LDFLAGS = @LDFLAGS@
+ FUZZ_MAX_LEN = 4096
+ FUZZ_RUNS = 8192
 diff --git a/lib/util/getentropy.c b/lib/util/getentropy.c
-index dc5c91c..34198f8 100644
+index dc5c91c..b4989c4 100644
 --- a/lib/util/getentropy.c
 +++ b/lib/util/getentropy.c
 @@ -29,7 +29,9 @@
@@ -24,8 +111,35 @@ index dc5c91c..34198f8 100644
  #include <sys/mman.h>
  #include <sys/resource.h>
  #include <sys/socket.h>
+@@ -118,7 +120,13 @@ static int getentropy_phdr(struct dl_phdr_info *info, size_t size, void *data);
+ static void *
+ mmap_anon(void *addr, size_t len, int prot, int flags, off_t offset)
+ {
+-#ifdef MAP_ANON
++#if defined(__MVS__)
++  addr = malloc(len);
++  if (addr == NULL)
++    return MAP_FAILED;
++  memset(addr, 0, len);
++  return addr;
++#elif defined(MAP_ANON)
+ 	return mmap(addr, len, prot, flags | MAP_ANON, -1, offset);
+ #else
+ 	int fd;
+@@ -543,7 +551,11 @@ getentropy_fallback(void *buf, size_t len)
+ 
+ 				for (m = 0; m < sizeof mm/sizeof(mm[0]); m++) {
+ 					if (mm[m].p != MAP_FAILED)
++#ifdef __MVS__
++						free(mm[m].p);
++#else
+ 						munmap(mm[m].p, mm[m].npg * pgs);
++#endif
+ 					mm[m].p = MAP_FAILED;
+ 				}
+ 
 diff --git a/lib/util/mmap_alloc.c b/lib/util/mmap_alloc.c
-index cd678a0..c1767d9 100644
+index cd678a0..fd9d535 100644
 --- a/lib/util/mmap_alloc.c
 +++ b/lib/util/mmap_alloc.c
 @@ -35,6 +35,7 @@
@@ -36,6 +150,49 @@ index cd678a0..c1767d9 100644
  
  #include "sudo_compat.h"
  #include "sudo_util.h"
+@@ -62,7 +63,15 @@ sudo_mmap_alloc_v1(size_t size)
+ {
+     void *ptr;
+     unsigned long *ulp;
+-#ifndef MAP_ANON
++#if defined(__MVS__)
++    size += sizeof(unsigned long);
++    ptr = malloc(size);
++    if (ptr == NULL) {
++       errno = ENOMEM;
++       return NULL;
++    }
++    memset(ptr, 0, size);
++#elif !defined(MAP_ANON)
+     int fd;
+ 
+     /* SunOS-style mmap allocation using /dev/zero. */
+@@ -132,9 +141,13 @@ int
+ sudo_mmap_protect_v1(void *ptr)
+ {
+     if (ptr != NULL) {
++#ifdef __MVS__
++      return 0;
++#else
+ 	unsigned long *ulp = ptr;
+ 	const unsigned long size = ulp[-1];
+ 	return mprotect((void *)&ulp[-1], size, PROT_READ);
++#endif
+     }
+ 
+     /* Can't protect NULL. */
+@@ -154,7 +167,11 @@ sudo_mmap_free_v1(void *ptr)
+ 	const unsigned long size = ulp[0];
+ 	int saved_errno = errno;
+ 
++#ifdef __MVS__
++	free(ulp);
++#else
+ 	(void)munmap((void *)ulp, size);
++#endif
+ 	errno = saved_errno;
+     }
+ }
 diff --git a/lib/util/pw_dup.c b/lib/util/pw_dup.c
 index ccd2fbb..787e96b 100644
 --- a/lib/util/pw_dup.c
@@ -85,6 +242,45 @@ index 08b9777..2312854 100644
  #include <stdio.h>
  #include <stdlib.h>
  #include <string.h>
+diff --git a/logsrvd/Makefile.in b/logsrvd/Makefile.in
+index 2a1f0d1..374dccd 100644
+--- a/logsrvd/Makefile.in
++++ b/logsrvd/Makefile.in
+@@ -49,7 +49,7 @@ LT_LIBS = $(top_builddir)/lib/iolog/libsudo_iolog.la \
+ 	  $(top_builddir)/lib/eventlog/libsudo_eventlog.la \
+ 	  $(top_builddir)/lib/logsrv/liblogsrv.la \
+ 	  $(top_builddir)/lib/protobuf-c/libprotobuf-c.la
+-LIBS = $(LT_LIBS) @LIBTLS@
++LIBS = $(LT_LIBS) @LIBTLS@ @LIBS@
+ 
+ # C preprocessor defines
+ CPPDEFS = -D_PATH_SUDO_LOGSRVD_CONF=\"$(sysconfdir)/sudo_logsrvd.conf\" \
+diff --git a/plugins/audit_json/Makefile.in b/plugins/audit_json/Makefile.in
+index 199a60d..0a654ea 100644
+--- a/plugins/audit_json/Makefile.in
++++ b/plugins/audit_json/Makefile.in
+@@ -42,7 +42,7 @@ INSTALL_BACKUP = @INSTALL_BACKUP@
+ 
+ # Libraries
+ LT_LIBS = $(top_builddir)/lib/util/libsudo_util.la
+-LIBS = $(LT_LIBS)
++LIBS = $(LT_LIBS) @LIBS@
+ 
+ # C preprocessor flags
+ CPPFLAGS = -I$(incdir) -I$(top_builddir) @CPPFLAGS@
+diff --git a/plugins/group_file/Makefile.in b/plugins/group_file/Makefile.in
+index e387e4d..a514d61 100644
+--- a/plugins/group_file/Makefile.in
++++ b/plugins/group_file/Makefile.in
+@@ -44,7 +44,7 @@ INSTALL_BACKUP = @INSTALL_BACKUP@
+ 
+ # Libraries
+ LT_LIBS = $(top_builddir)/lib/util/libsudo_util.la
+-LIBS = $(LT_LIBS)
++LIBS = $(LT_LIBS) @LIBS@
+ 
+ # C preprocessor flags
+ CPPFLAGS = -I$(incdir) -I$(top_builddir) @CPPFLAGS@
 diff --git a/plugins/group_file/getgrent.c b/plugins/group_file/getgrent.c
 index f37fb0e..2323c15 100644
 --- a/plugins/group_file/getgrent.c
@@ -99,6 +295,201 @@ index f37fb0e..2323c15 100644
      if ((colon = strchr(cp = colon, ':')) == NULL)
  	goto next_entry;
      *colon++ = '\0';
+diff --git a/plugins/python/Makefile.in b/plugins/python/Makefile.in
+index e79f570..d261aa5 100644
+--- a/plugins/python/Makefile.in
++++ b/plugins/python/Makefile.in
+@@ -47,7 +47,7 @@ INSTALL_BACKUP = @INSTALL_BACKUP@
+ 
+ # Libraries
+ LT_LIBS = $(top_builddir)/lib/util/libsudo_util.la
+-LIBS = $(LT_LIBS)
++LIBS = $(LT_LIBS) @LIBS@
+ 
+ LIBPYTHONPLUGIN = python_plugin.la
+ 
+diff --git a/plugins/sample/Makefile.in b/plugins/sample/Makefile.in
+index e0a814c..9937ffd 100644
+--- a/plugins/sample/Makefile.in
++++ b/plugins/sample/Makefile.in
+@@ -43,7 +43,7 @@ INSTALL_OWNER = -o $(install_uid) -g $(install_gid)
+ INSTALL_BACKUP = @INSTALL_BACKUP@
+ 
+ # Libraries
+-LIBS = $(top_builddir)/lib/util/libsudo_util.la
++LIBS = $(top_builddir)/lib/util/libsudo_util.la @LIBS@
+ 
+ # C preprocessor flags
+ CPPFLAGS = -I$(incdir) -I$(top_builddir) @CPPFLAGS@
+diff --git a/plugins/sample_approval/Makefile.in b/plugins/sample_approval/Makefile.in
+index fb3b435..5cff31a 100644
+--- a/plugins/sample_approval/Makefile.in
++++ b/plugins/sample_approval/Makefile.in
+@@ -42,7 +42,7 @@ INSTALL_BACKUP = @INSTALL_BACKUP@
+ 
+ # Libraries
+ LT_LIBS = $(top_builddir)/lib/util/libsudo_util.la
+-LIBS = $(LT_LIBS)
++LIBS = $(LT_LIBS) @LIBS@
+ 
+ # C preprocessor flags
+ CPPFLAGS = -I$(incdir) -I$(top_builddir) @CPPFLAGS@
+diff --git a/plugins/sudoers/Makefile.in b/plugins/sudoers/Makefile.in
+index 3dcc746..b3a5270 100644
+--- a/plugins/sudoers/Makefile.in
++++ b/plugins/sudoers/Makefile.in
+@@ -62,10 +62,10 @@ LIBEVENTLOG = $(top_builddir)/lib/eventlog/libsudo_eventlog.la
+ LIBIOLOG = $(top_builddir)/lib/iolog/libsudo_iolog.la $(LIBEVENTLOG)
+ LIBLOGSRV = @LIBLOGSRV@
+ LIBUTIL = $(top_builddir)/lib/util/libsudo_util.la
+-LIBS = $(LIBUTIL)
++LIBS = $(LIBUTIL) @LIBS@
+ NET_LIBS = @NET_LIBS@
+ SUDOERS_LIBS = @SUDOERS_LIBS@ @AFS_LIBS@ @GETGROUPS_LIB@ @LIBTLS@ $(NET_LIBS) $(LIBIOLOG) $(LIBLOGSRV)
+-REPLAY_LIBS = @REPLAY_LIBS@ $(LIBIOLOG)
++REPLAY_LIBS = @REPLAY_LIBS@ $(LIBIOLOG) @LIBS@
+ VISUDO_LIBS = $(NET_LIBS)
+ CVTSUDOERS_LIBS = $(NET_LIBS)
+ TESTSUDOERS_LIBS = $(NET_LIBS)
+@@ -549,17 +549,20 @@ pre-install: visudo
+ 	    fi; \
+ 	fi
+ 
+-install: install-plugin install-binaries install-sudoers install-doc
+++# z/OS: Don't install plugin and sudoers files into "/etc" as we don't have root privileges at that moment.
++install: install-plugin install-binaries
+ 
+ install-dirs:
+ 	$(SHELL) $(scriptdir)/mkinstalldirs $(DESTDIR)$(plugindir) \
+-	    $(DESTDIR)$(sbindir) $(DESTDIR)$(bindir) \
+-	    $(DESTDIR)$(sysconfdir) $(DESTDIR)$(docdir) \
+-	    `echo $(DESTDIR)$(rundir)|$(SED) 's,/[^/]*$$,,'` \
+-	    `echo $(DESTDIR)$(vardir)|$(SED) 's,/[^/]*$$,,'`
+-	$(INSTALL) -d $(INSTALL_OWNER) -m 0711 $(DESTDIR)$(rundir)
+-	$(INSTALL) -d $(INSTALL_OWNER) -m 0711 $(DESTDIR)$(vardir)
+-	$(INSTALL) -d $(INSTALL_OWNER) -m 0700 $(DESTDIR)$(vardir)/lectured
++ 	$(DESTDIR)$(sbindir) $(DESTDIR)$(bindir) $(DESTDIR)$(docdir)
++#	$(SHELL) $(scriptdir)/mkinstalldirs $(DESTDIR)$(plugindir) \
++#	    $(DESTDIR)$(sbindir) $(DESTDIR)$(bindir) \
++#	    $(DESTDIR)$(sysconfdir) $(DESTDIR)$(docdir) \
++#	    `echo $(DESTDIR)$(rundir)|$(SED) 's,/[^/]*$$,,'` \
++#	    `echo $(DESTDIR)$(vardir)|$(SED) 's,/[^/]*$$,,'`
++#	$(INSTALL) -d $(INSTALL_OWNER) -m 0711 $(DESTDIR)$(rundir)
++#	$(INSTALL) -d $(INSTALL_OWNER) -m 0711 $(DESTDIR)$(vardir)
++#	$(INSTALL) -d $(INSTALL_OWNER) -m 0700 $(DESTDIR)$(vardir)/lectured
+ 
+ install-binaries: cvtsudoers sudoreplay visudo install-dirs
+ 	INSTALL_BACKUP='$(INSTALL_BACKUP)' $(LIBTOOL) $(LTFLAGS) --mode=install $(INSTALL) $(INSTALL_OWNER) -m 0755 cvtsudoers $(DESTDIR)$(bindir)/cvtsudoers
+diff --git a/plugins/sudoers/auth/passwd.c b/plugins/sudoers/auth/passwd.c
+index 6967e4f..754f45f 100644
+--- a/plugins/sudoers/auth/passwd.c
++++ b/plugins/sudoers/auth/passwd.c
+@@ -37,6 +37,10 @@
+ #include "sudoers.h"
+ #include "sudo_auth.h"
+ 
++#ifdef __MVS__
++#include <errno.h>
++#endif /* __MVS__*/
++
+ #define DESLEN			13
+ #define HAS_AGEINFO(p, l)	(l == 18 && p[DESLEN] == ',')
+ 
+@@ -56,9 +60,63 @@ sudo_passwd_init(struct passwd *pw, sudo_auth *auth)
+     sudo_setspent();
+     auth->data = sudo_getepw(pw);
+     sudo_endspent();
++#ifdef __MVS__
++    debug_return_int(AUTH_SUCCESS);
++#else
+     debug_return_int(auth->data ? AUTH_SUCCESS : AUTH_FATAL);
++#endif
+ }
+ 
++#ifdef __MVS__
++int sudo_passwd_verify(struct passwd *pw, const char *pass, sudo_auth *auth, struct sudo_conv_callback *callback)
++{
++    debug_decl(sudo_passwd_verify, SUDOERS_DEBUG_AUTH);
++    int passwd_res = __passwd(pw->pw_name, pass, NULL);
++    if (passwd_res)
++    {
++        int passwd_errno = errno;
++        int passwd_errno2 = __errno2();
++
++        switch (passwd_errno)
++        {
++            case EINVAL:
++                if (NULL == pass)
++                {
++                    log_warning(0, "User is not a surrogate of \"%s\"\n",
++                              pw->pw_name);
++               }
++               else
++               {
++                   if (*pass == '\0')
++                   {
++                       log_warning(0, "No password entered\n");
++                   }
++                   else
++                   {
++                       log_warning(0, "Invalid password entered: reason code = %08X\n",
++                           passwd_errno2);
++                   }
++               }
++                break;
++            case EMVSERR:
++               log_warning(0, "Program loaded from an uncontrolled library\n");
++               break;
++           case EMVSEXPIRE:
++                log_warning(0, "Password expired\n");
++               break;
++            case ESRCH:
++                log_warning(0, "User ID \"%s\" does not exist, or "
++                       "the RACF profile does not contain an OMVS segment\n",
++                       pw->pw_name);
++                break;
++            default:
++                    log_warning(0, "Password incorrect for \"%s\"\n", pw->pw_name);
++               break;
++        }
++    }
++    debug_return_int(passwd_res ? AUTH_FAILURE : AUTH_SUCCESS);
++}
++#else /* !__MVS__ */
+ #ifdef HAVE_CRYPT
+ int
+ sudo_passwd_verify(struct passwd *pw, const char *pass, sudo_auth *auth, struct sudo_conv_callback *callback)
+@@ -113,6 +171,7 @@ sudo_passwd_verify(struct passwd *pw, const char *pass, sudo_auth *auth, struct
+     debug_return_int(matched ? AUTH_SUCCESS : AUTH_FAILURE);
+ }
+ #endif
++#endif
+ 
+ int
+ sudo_passwd_cleanup(struct passwd *pw, sudo_auth *auth, bool force)
+diff --git a/plugins/sudoers/check_aliases.c b/plugins/sudoers/check_aliases.c
+index 1b3d030..d9660b0 100644
+--- a/plugins/sudoers/check_aliases.c
++++ b/plugins/sudoers/check_aliases.c
+@@ -132,6 +132,18 @@ check_alias(struct sudoers_parse_tree *parse_tree,
+ 		alias_warnx(file, line, column, strict, quiet,
+ 		    N_("cycle in %s \"%s\""), alias_type_to_string(type), name);
+ 	    } else {
++#ifdef __MVS__
++    /* In "sudoers" file alias name consist of capital letters, numbers and underscores,
++       but user name in z/OS consist of capital letters too. So by default sudo cannot
++       distinguish the difference between the alias and user name in z/OS and we can
++       get multiple "false" warnings after editing "sudoers" with "visudo":
++       -------------------------------------------------------
++       "User_Alias "ZOS_USER_NAME" referenced but not defined"
++       -------------------------------------------------------
++       This additional condition checks that the possible undefined alias can be just
++       z/OS user name and in such case warning is not shown. */
++    if (getpwnam(name) == NULL) /* No such z/OS user name - show the warning. */
++#endif
+ 		alias_warnx(file, line, column, strict, quiet,
+ 		    N_("%s \"%s\" referenced but not defined"),
+ 		    alias_type_to_string(type), name);
 diff --git a/plugins/sudoers/cvtsudoers_pwutil.c b/plugins/sudoers/cvtsudoers_pwutil.c
 index 6b30d03..201712b 100644
 --- a/plugins/sudoers/cvtsudoers_pwutil.c
@@ -163,43 +554,102 @@ index 6b30d03..201712b 100644
      FIELD_COPY(&gr, newgr, gr_name, nsize);
  
      /* Set key and datum. */
+diff --git a/plugins/sudoers/defaults.c b/plugins/sudoers/defaults.c
+index e90be1f..3530948 100644
+--- a/plugins/sudoers/defaults.c
++++ b/plugins/sudoers/defaults.c
+@@ -605,8 +605,19 @@ init_defaults(void)
+ 	goto oom;
+     if ((def_passprompt = strdup(_(PASSPROMPT))) == NULL)
+ 	goto oom;
++#ifdef __MVS__
++  // z/OS USS is supposed to have BPXROOT as a superuser;
++  // however, some installations have ROOT instead, so we
++  // give it a second chance. The runas default can be
++  // configured via /etc/sudoers, but we still need a user name
++  // here before we even start reading sudoers.
++  char* runas_default = getpwnam(RUNAS_DEFAULT)? RUNAS_DEFAULT : "ROOT";
++  if ((def_runas_default = strdup(runas_default)) == NULL)
++      goto oom;
++#else
+     if ((def_runas_default = strdup(RUNAS_DEFAULT)) == NULL)
+ 	goto oom;
++#endif
+ #ifdef _PATH_SUDO_SENDMAIL
+     if ((def_mailerpath = strdup(_PATH_SUDO_SENDMAIL)) == NULL)
+ 	goto oom;
+diff --git a/plugins/sudoers/env.c b/plugins/sudoers/env.c
+index 73f017a..4a3c6fc 100644
+--- a/plugins/sudoers/env.c
++++ b/plugins/sudoers/env.c
+@@ -225,6 +225,13 @@ static const char *initial_keepenv_table[] = {
+     "XAUTHORITY",
+     "XAUTHORIZATION",
+     "XDG_CURRENT_DESKTOP",
++#ifdef __MVS__
++    "_CEE_RUNOPTS",
++    "_BPXK_AUTOCVT",
++    "_TAG_REDIR_ERR",
++    "_TAG_REDIR_IN",
++    "_TAG_REDIR_OUT",
++#endif
+     NULL
+ };
+ 
 diff --git a/plugins/sudoers/getspwuid.c b/plugins/sudoers/getspwuid.c
-index 650b3f3..822f56d 100644
+index 650b3f3..51c84a4 100644
 --- a/plugins/sudoers/getspwuid.c
 +++ b/plugins/sudoers/getspwuid.c
-@@ -107,7 +107,12 @@ sudo_getepw(const struct passwd *pw)
+@@ -106,8 +106,11 @@ sudo_getepw(const struct passwd *pw)
+ #if defined(HAVE_ISCOMSEC)
  done:
  #endif
-     /* If no shadow password, fall back on regular password. */
+-    /* If no shadow password, fall back on regular password. */
 -    debug_return_str(strdup(epw ? epw : pw->pw_passwd));
-+    debug_return_str(strdup(epw ? epw : 
-+#ifdef __MVS__
-+""));
++#ifndef __MVS__
++     debug_return_str(strdup(epw ? epw : pw->pw_passwd));
 +#else
-+pw->pw_passwd));
++    return NULL;
 +#endif
  }
  
  void
 diff --git a/plugins/sudoers/pwutil.c b/plugins/sudoers/pwutil.c
-index 0dd8968..0fadb5b 100644
+index 0dd8968..5a7f5fa 100644
 --- a/plugins/sudoers/pwutil.c
 +++ b/plugins/sudoers/pwutil.c
-@@ -380,11 +380,13 @@ sudo_mkpwent(const char *user, uid_t uid, gid_t gid, const char *home,
+@@ -363,7 +363,9 @@ sudo_mkpwent(const char *user, uid_t uid, gid_t gid, const char *home,
+     home_len = strlen(home);
+     shell_len = strlen(shell);
+     len = sizeof(*pwitem) + name_len + 1 /* pw_name */ +
++#ifndef __MVS__
+ 	sizeof("*") /* pw_passwd */ + sizeof("") /* pw_gecos */ +
++#endif
+ 	home_len + 1 /* pw_dir */ + shell_len + 1 /* pw_shell */;
+ 
+     for (i = 0; i < 2; i++) {
+@@ -380,11 +382,15 @@ sudo_mkpwent(const char *user, uid_t uid, gid_t gid, const char *home,
  	pw->pw_gid = gid;
  	pw->pw_name = (char *)(pwitem + 1);
  	memcpy(pw->pw_name, user, name_len + 1);
-+#ifndef __MVS__
- 	pw->pw_passwd = pw->pw_name + name_len + 1;
- 	memcpy(pw->pw_passwd, "*", 2);
- 	pw->pw_gecos = pw->pw_passwd + 2;
- 	pw->pw_gecos[0] = '\0';
- 	pw->pw_dir = pw->pw_gecos + 1;
-+#endif
+-	pw->pw_passwd = pw->pw_name + name_len + 1;
+-	memcpy(pw->pw_passwd, "*", 2);
+-	pw->pw_gecos = pw->pw_passwd + 2;
+-	pw->pw_gecos[0] = '\0';
+-	pw->pw_dir = pw->pw_gecos + 1;
++#ifdef __MVS__
++  pw->pw_dir = pw->pw_name + name_len + 1;
++#else /* !__MVS__ */
++  pw->pw_passwd = pw->pw_name + name_len + 1;
++  memcpy(pw->pw_passwd, "*", 2);
++  pw->pw_gecos = pw->pw_passwd + 2;
++  pw->pw_gecos[0] = '\0';
++  pw->pw_dir = pw->pw_gecos + 1;
++#endif /* __MVS__ */
  	memcpy(pw->pw_dir, home, home_len + 1);
  	pw->pw_shell = pw->pw_dir + home_len + 1;
  	memcpy(pw->pw_shell, shell, shell_len + 1);
-@@ -686,7 +688,9 @@ sudo_mkgrent(const char *group, gid_t gid, ...)
+@@ -686,7 +692,9 @@ sudo_mkgrent(const char *group, gid_t gid, ...)
  	}
  	gr = &gritem->gr;
  	gr->gr_gid = gid;
@@ -210,7 +660,7 @@ index 0dd8968..0fadb5b 100644
  	gr->gr_mem = (char **)cp;
  	cp += sizeof(char *) * nmem;
 diff --git a/plugins/sudoers/pwutil_impl.c b/plugins/sudoers/pwutil_impl.c
-index 199cb5e..9a68b8f 100644
+index 199cb5e..e5f2d48 100644
 --- a/plugins/sudoers/pwutil_impl.c
 +++ b/plugins/sudoers/pwutil_impl.c
 @@ -102,11 +102,13 @@ sudo_make_pwitem(uid_t uid, const char *name)
@@ -219,12 +669,11 @@ index 199cb5e..9a68b8f 100644
      FIELD_SIZE(pw, pw_name, nsize);
 +#ifndef __MVS__
      FIELD_SIZE(pw, pw_passwd, psize);
-+    FIELD_SIZE(pw, pw_gecos, gsize);
-+#endif
  #ifdef HAVE_LOGIN_CAP_H
      FIELD_SIZE(pw, pw_class, csize);
  #endif
--    FIELD_SIZE(pw, pw_gecos, gsize);
+     FIELD_SIZE(pw, pw_gecos, gsize);
++#endif
      FIELD_SIZE(pw, pw_dir, dsize);
      /* Treat shell specially since we expand "" -> _PATH_BSHELL */
      ssize = strlen(pw_shell) + 1;
@@ -234,12 +683,11 @@ index 199cb5e..9a68b8f 100644
      FIELD_COPY(pw, newpw, pw_name, nsize);
 +#ifndef __MVS__
      FIELD_COPY(pw, newpw, pw_passwd, psize);
-+    FIELD_COPY(pw, newpw, pw_gecos, gsize);
-+#endif
  #ifdef HAVE_LOGIN_CAP_H
      FIELD_COPY(pw, newpw, pw_class, csize);
  #endif
--    FIELD_COPY(pw, newpw, pw_gecos, gsize);
+     FIELD_COPY(pw, newpw, pw_gecos, gsize);
++#endif
      FIELD_COPY(pw, newpw, pw_dir, dsize);
      /* Treat shell specially since we expand "" -> _PATH_BSHELL */
      memcpy(cp, pw_shell, ssize);
@@ -263,6 +711,191 @@ index 199cb5e..9a68b8f 100644
      FIELD_COPY(gr, newgr, gr_name, nsize);
  
      /* Set key and datum. */
+diff --git a/plugins/sudoers/set_perms.c b/plugins/sudoers/set_perms.c
+index 77ce395..f0c6926 100644
+--- a/plugins/sudoers/set_perms.c
++++ b/plugins/sudoers/set_perms.c
+@@ -939,6 +939,20 @@ set_perms(int perm)
+ 		goto bad;
+ 	    }
+ 	}
++#ifdef __MVS__
++  /* can't change EUID directly */
++  if (getuid() == ROOT_UID &&
++      geteuid() == ROOT_UID &&
++      user_uid != ROOT_UID)
++  {
++      state->ruid = user_uid;
++      state->euid = ROOT_UID;
++      if (UID_CHANGED && setreuid(ID(ruid), ROOT_UID)) {
++          strlcpy(errbuf, _("unable to change to user ruid"), sizeof(errbuf));
++          goto bad;
++      }
++  }
++#endif /* __MVS__ */
+ 	state->ruid = ROOT_UID;
+ 	state->euid = user_uid;
+ 	sudo_debug_printf(SUDO_DEBUG_INFO, "%s: PERM_USER: uid: "
+@@ -953,6 +967,20 @@ set_perms(int perm)
+ 
+     case PERM_FULL_USER:
+ 	/* headed for exec() */
++#ifdef __MVS__
++  /* can't change RUID and EUID directly */
++  if (getuid() == ROOT_UID &&
++      geteuid() == ROOT_UID &&
++      user_uid != ROOT_UID)
++  {
++      state->ruid = user_uid;
++      state->euid = ROOT_UID;
++      if (UID_CHANGED && setreuid(ID(ruid), ROOT_UID)) {
++          strlcpy(errbuf, _("unable to change to full user ruid"), sizeof(errbuf));
++         goto bad;
++      }
++  }
++#endif /* __MVS__ */
+ 	state->rgid = user_gid;
+ 	state->egid = user_gid;
+ 	sudo_debug_printf(SUDO_DEBUG_INFO, "%s: PERM_FULL_USER: gid: "
+@@ -1000,6 +1028,19 @@ set_perms(int perm)
+ 	    errstr = N_("unable to set runas group vector");
+ 	    goto bad;
+ 	}
++#ifdef __MVS__
++   /* can't change EUID directly */
++   if (ostate->euid == ROOT_UID)
++   {
++       state->ruid = runas_pw ? runas_pw->pw_uid : user_uid;
++       state->euid = ROOT_UID;
++       if (UID_CHANGED && setreuid(ID(ruid), ROOT_UID)) {
++           strlcpy(errbuf, _("unable to change to runas ruid"), sizeof(errbuf));
++           goto bad;
++       }
++  }
++#endif /* __MVS__ */
++#ifndef __MVS__
+ 	state->ruid = ROOT_UID;
+ 	state->euid = runas_pw ? runas_pw->pw_uid : user_uid;
+ 	sudo_debug_printf(SUDO_DEBUG_INFO, "%s: PERM_RUNAS: uid: "
+@@ -1009,6 +1050,7 @@ set_perms(int perm)
+ 	    errstr = N_("unable to change to runas uid");
+ 	    goto bad;
+ 	}
++#endif
+ 	break;
+ 
+     case PERM_SUDOERS:
+@@ -1052,6 +1094,19 @@ set_perms(int perm)
+ 	sudo_gidlist_addref(state->gidlist);
+ 	state->rgid = ostate->rgid;
+ 	state->egid = ostate->egid;
++#ifdef __MVS__
++        /* can't change EUID directly */
++        if (ostate->euid == ROOT_UID)
++        {
++            state->ruid = timestamp_uid;
++            state->euid = ROOT_UID;
++/*            if (UID_CHANGED && setreuid(ID(ruid), ID(euid))) { */
++            if (UID_CHANGED && setreuid(ID(ruid), ROOT_UID)) {
++                strlcpy(errbuf, _("unable to change to timestamp ruid"), sizeof(errbuf));
++                goto bad;
++            }
++        }
++#endif /* __MVS__ */
+ 	state->ruid = ROOT_UID;
+ 	state->euid = timestamp_uid;
+ 	sudo_debug_printf(SUDO_DEBUG_INFO, "%s: PERM_TIMESTAMP: uid: "
+@@ -1080,6 +1135,10 @@ bool
+ restore_perms(void)
+ {
+     struct perm_state *state, *ostate;
++#ifdef __MVS__
++    uid_t prev_ruid;
++    uid_t prev_euid;
++#endif /* __MVS__ */
+     debug_decl(restore_perms, SUDOERS_DEBUG_PERMS);
+ 
+     if (perm_stack_depth < 2) {
+@@ -1117,11 +1176,33 @@ restore_perms(void)
+ 	    goto bad;
+ 	}
+     }
++#ifdef __MVS__
++    /* can't change EUID directly */
++    prev_ruid = getuid();
++    prev_euid = geteuid();
++
++    if (geteuid() == ROOT_UID)
++    {
++        if (setreuid(OID(ruid), ROOT_UID)) {
++            sudo_warn("unable to restore ruid %d -> %d", (int)prev_ruid,
++                (int)OID(ruid));
++            goto bad;
++        }
++    }
++    prev_ruid = getuid();
++    prev_euid = geteuid();
++    if (setreuid(OID(ruid), OID(euid))) {
++       sudo_warn("setreuid() [%d, %d] -> [%d, %d]", (int)prev_ruid,
++            (int)prev_euid, (int)OID(ruid), (int)OID(euid));
++        goto bad;
++    }
++#else /* !__MVS__ */
+     if (setreuid(OID(ruid), OID(euid))) {
+ 	sudo_warn("setreuid() [%d, %d] -> [%d, %d]", (int)state->ruid,
+ 	    (int)state->euid, (int)OID(ruid), (int)OID(euid));
+ 	goto bad;
+     }
++#endif
+     if (setregid(OID(rgid), OID(egid))) {
+ 	sudo_warn("setregid() [%d, %d] -> [%d, %d]", (int)state->rgid,
+ 	    (int)state->egid, (int)OID(rgid), (int)OID(egid));
+diff --git a/plugins/sudoers/sudoers.c b/plugins/sudoers/sudoers.c
+index 9ae5f96..15547a6 100644
+--- a/plugins/sudoers/sudoers.c
++++ b/plugins/sudoers/sudoers.c
+@@ -622,7 +622,11 @@ sudoers_policy_main(int argc, char * const argv[], int pwflag, char *env_add[],
+     /* If run as root with SUDO_USER set, set sudo_user.pw to that user. */
+     /* XXX - causes confusion when root is not listed in sudoers */
+     if (ISSET(sudo_mode, MODE_RUN|MODE_EDIT) && prev_user != NULL) {
+-	if (user_uid == 0 && strcmp(prev_user, "root") != 0) {
++#ifdef __MVS__
++       if (user_uid == 0 && strcmp(prev_user, "ROOT") != 0) {
++#else /* !__MVS__ */
++       if (user_uid == 0 && strcmp(prev_user, "root") != 0) {
++#endif /* __MVS__ */
+ 	    struct passwd *pw;
+ 
+ 	    if ((pw = sudo_getpwnam(prev_user)) != NULL) {
+diff --git a/plugins/sudoers/testsudoers.c b/plugins/sudoers/testsudoers.c
+index 3eea349..38951dc 100644
+--- a/plugins/sudoers/testsudoers.c
++++ b/plugins/sudoers/testsudoers.c
+@@ -187,6 +187,7 @@ main(int argc, char *argv[])
+     argc -= optind;
+     argv += optind;
+ 
++#ifndef __MVS__
+     if (grfile != NULL || pwfile != NULL) {
+ 	/* Set group/passwd file and init the cache. */
+ 	if (grfile)
+@@ -199,11 +200,16 @@ main(int argc, char *argv[])
+ 	    testsudoers_make_gritem, testsudoers_make_gidlist_item,
+ 	    testsudoers_make_grlist_item);
+     }
++#endif
+ 
+     if (argc < 2) {
+ 	if (!dflag)
+ 	    usage();
++#ifdef __MVS__
++	user_name = argc ? *argv++ : (char *)"ROOT";
++#else
+ 	user_name = argc ? *argv++ : (char *)"root";
++#endif
+ 	orig_cmnd = "true";
+ 	argc = 0;
+     } else {
 diff --git a/plugins/sudoers/tsgetgrpw.c b/plugins/sudoers/tsgetgrpw.c
 index 19fb798..33e8a15 100644
 --- a/plugins/sudoers/tsgetgrpw.c
@@ -298,6 +931,106 @@ index 19fb798..33e8a15 100644
      if ((colon = strchr(cp = colon, ':')) == NULL)
  	goto next_entry;
      *colon++ = '\0';
+diff --git a/plugins/system_group/Makefile.in b/plugins/system_group/Makefile.in
+index da93c1d..f49e517 100644
+--- a/plugins/system_group/Makefile.in
++++ b/plugins/system_group/Makefile.in
+@@ -44,7 +44,7 @@ INSTALL_BACKUP = @INSTALL_BACKUP@
+ 
+ # Libraries
+ LT_LIBS = $(top_builddir)/lib/util/libsudo_util.la
+-LIBS = $(LT_LIBS)
++LIBS = $(LT_LIBS) @LIBS@
+ 
+ # C preprocessor flags
+ CPPFLAGS = -I$(incdir) -I$(top_builddir) @CPPFLAGS@
+diff --git a/scripts/install-sh b/scripts/install-sh
+index 228a0b1..1a2d34c 100755
+--- a/scripts/install-sh
++++ b/scripts/install-sh
+@@ -171,12 +171,13 @@ if ${DIRMODE} ; then
+ 	if [ ! -d "${DEST}" ] ; then
+ 	    ${MKDIR} "${DEST}" || exit 1
+ 	fi
+-	if ${CHOWNIT} ; then
+-	    ${CHOWN} "${OWNER}" "${DEST}" || exit 1
+-	fi
+-	if ${CHGROUPIT} ; then
+-	    ${CHGRP} "${GROUP}" "${DEST}" || exit 1
+-	fi
++## z/OS: Don't change owner/group as we don't have root privileges at that moment.
++#      if ${CHOWNIT} ; then
++#          ${CHOWN} "${OWNER}" "${DEST}" || exit 1
++#      fi
++#      if ${CHGROUPIT} ; then
++#          ${CHGRP} "${GROUP}" "${DEST}" || exit 1
++#      fi
+ 	if ${CHMODIT} ; then
+ 	    ${CHMOD} "${MODE}"  "${DEST}" || exit 1
+ 	fi
+@@ -227,12 +228,13 @@ fi
+ if ${STRIPIT} ; then
+     ${STRIP} "${DEST}" || exit 1
+ fi
+-if ${CHOWNIT} ; then
+-    ${CHOWN} "${OWNER}" "${DEST}" || exit 1
+-fi
+-if ${CHGROUPIT} ; then
+-    ${CHGRP} "${GROUP}" "${DEST}" || exit 1
+-fi
++## z/OS: Don't change owner/group as we don't have root privileges at that moment.
++#      if ${CHOWNIT} ; then
++#          ${CHOWN} "${OWNER}" "${DEST}" || exit 1
++#      fi
++#      if ${CHGROUPIT} ; then
++#          ${CHGRP} "${GROUP}" "${DEST}" || exit 1
++#      fi
+ if ${CHMODIT} ; then
+     ${CHMOD} "${MODE}" "${DEST}" || exit 1
+ fi
+diff --git a/src/Makefile.in b/src/Makefile.in
+index d9fa3a6..d882b48 100644
+--- a/src/Makefile.in
++++ b/src/Makefile.in
+@@ -47,7 +47,7 @@ INSTALL_BACKUP = @INSTALL_BACKUP@
+ # Libraries
+ LT_LIBS = $(top_builddir)/lib/util/libsudo_util.la \
+ 	  $(top_builddir)/lib/protobuf-c/libprotobuf-c.la
+-LIBS = @LIBS@ @SUDO_LIBS@ @GETGROUPS_LIB@ @NET_LIBS@ $(LT_LIBS)
++LIBS = @LIBS@ @SUDO_LIBS@ @GETGROUPS_LIB@ @NET_LIBS@ $(LT_LIBS) @LIBS@
+ 
+ # C preprocessor defines
+ CPPDEFS = -D_PATH_SUDO_CONF=\"$(sysconfdir)/sudo.conf\" \
+diff --git a/src/exec.c b/src/exec.c
+index f8856b4..b2e8463 100644
+--- a/src/exec.c
++++ b/src/exec.c
+@@ -205,11 +205,25 @@ exec_setup(struct command_details *details, int intercept_fd, int errfd)
+ 	goto done;
+     }
+ #elif defined(HAVE_SETREUID)
++#ifdef __MVS__
++    /* can't change EUID directly */
++    if (setreuid(details->cred.uid, 0) != 0) {
++       sudo_warn(U_("unable to change to runas uid (%u, %u)"),
++           (unsigned int)details->cred.uid, 0);
++       goto done;
++    }
++    if (setreuid(details->cred.uid, details->cred.euid) != 0) {
++       sudo_warn(U_("unable to change to runas euid (%u, %u)"),
++           (unsigned int)details->cred.uid, (unsigned int)details->cred.euid);
++       goto done;
++    }
++#else /* __MVS__ */
+     if (setreuid(details->cred.uid, details->cred.euid) != 0) {
+ 	sudo_warn(U_("unable to change to runas uid (%u, %u)"),
+ 	    (unsigned int)details->cred.uid, (unsigned int)details->cred.euid);
+ 	goto done;
+     }
++#endif
+ #else
+     /* Cannot support real user-ID that is different from effective user-ID. */
+     if (setuid(details->cred.euid) != 0) {
 diff --git a/src/net_ifs.c b/src/net_ifs.c
 index 68c2145..3132279 100644
 --- a/src/net_ifs.c
@@ -313,11 +1046,47 @@ index 68c2145..3132279 100644
  
  #define NEED_INET_NTOP		/* to expose sudo_inet_ntop in sudo_compat.h */
  
+diff --git a/src/preload.c b/src/preload.c
+index 907ebd5..65bccb8 100644
+--- a/src/preload.c
++++ b/src/preload.c
+@@ -65,6 +65,9 @@ static struct sudo_preload_symbol sudo_sudoers_plugin_symbols[] = {
+ static struct sudo_preload_table sudo_preload_table[] = {
+     { (char *)0, SUDO_DSO_DEFAULT, sudo_rtld_default_symbols },
+     { _PATH_SUDOERS_PLUGIN, &sudo_sudoers_plugin_symbols, sudo_sudoers_plugin_symbols },
++#ifdef __MVS__
++    { "/etc/sudoers", &sudo_sudoers_plugin_symbols, sudo_sudoers_plugin_symbols },
++#endif
+     { (char *)0, (void *)0, (struct sudo_preload_symbol *)0 }
+ };
+ 
 diff --git a/src/sudo.c b/src/sudo.c
-index a8a18bb..ea6b2b3 100644
+index a8a18bb..c6d1d6a 100644
 --- a/src/sudo.c
 +++ b/src/sudo.c
-@@ -496,6 +496,9 @@ done:
+@@ -140,6 +140,10 @@ static struct sudo_settings *sudo_settings;
+ static char * const *user_info, * const *submit_argv, * const *submit_envp;
+ static int submit_optind;
+ 
++#ifdef __MVS__
++extern char** environ;
++#endif /* __MVS__ */
++
+ int
+ main(int argc, char *argv[], char *envp[])
+ {
+@@ -150,6 +154,10 @@ main(int argc, char *argv[], char *envp[])
+     sigset_t mask;
+     debug_decl_vars(main, SUDO_DEBUG_MAIN);
+ 
++#ifdef __MVS__
++    envp = environ;
++#endif /* __MVS__ */
++
+     /* Only allow "sudo" or "sudoedit" as the program name. */
+     initprogname2(argc > 0 ? argv[0] : "sudo", allowed_prognames);
+ 
+@@ -496,6 +504,9 @@ done:
   * Return user information as an array of name=value pairs.
   * and fill in struct user_details (which shares the same strings).
   */

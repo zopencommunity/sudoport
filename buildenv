@@ -2,6 +2,8 @@ export ZOPEN_GIT_URL="https://github.com/sudo-project/sudo.git"
 export ZOPEN_GIT_DEPS="make"
 export ZOPEN_TARBALL_URL="https://www.sudo.ws/dist/sudo-1.9.13p2.tar.gz"
 export ZOPEN_TARBALL_DEPS="make coreutils zoslib"
+#TODO: add zlib, openssl
+export ZOPEN_EXTRA_CONFIGURE_OPTS="--without-interfaces"
 export ZOPEN_TYPE="TARBALL"
 export ZOPEN_MAKE_MINIMAL="yes"
 export ZOPEN_MAKE_OPTS="-j$NUM_JOBS HOSTCC=xlclang"
