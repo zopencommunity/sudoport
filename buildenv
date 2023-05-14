@@ -1,15 +1,15 @@
 export ZOPEN_GIT_URL="https://github.com/sudo-project/sudo.git"
 export ZOPEN_GIT_DEPS="make"
 export ZOPEN_TARBALL_URL="https://www.sudo.ws/dist/sudo-1.9.13p3.tar.gz"
-export ZOPEN_TARBALL_DEPS="make coreutils zoslib"
+export ZOPEN_TARBALL_DEPS="make coreutils zoslib openssl zlib"
 #TODO: add zlib, openssl
-export ZOPEN_EXTRA_CONFIGURE_OPTS="--sysconfdir=\"\$ZOPEN_INSTALL_DIR/etc\" --with-vardir=\"\$ZOPEN_INSTALL_DIR/var/lib/sudo\" --with-rundir=\"\$ZOPEN_INSTALL_DIR/var/run/sudo\" --with-logpath=\"\$ZOPEN_INSTALL_DIR/var/log/sudo.log\" --with-rundir=\"\$ZOPEN_INSTALL_DIR/var/run/sudo\" --with-iologdir=\"\$ZOPEN_INSTALL_DIR/var/run/sudo-io\" --with-logdir=\"\$ZOPEN_INSTALL_DIR/var/log\" --with-relaydir=\"\$ZOPEN_INSTALL_DIR/var/log/sudo_logsrvd\" --without-interfaces"
+export ZOPEN_EXTRA_CONFIGURE_OPTS="--sysconfdir=\"\$ZOPEN_INSTALL_DIR/etc\" --with-vardir=\"\$ZOPEN_INSTALL_DIR/var/lib/sudo\" --with-rundir=\"\$ZOPEN_INSTALL_DIR/var/run/sudo\" --with-logpath=\"\$ZOPEN_INSTALL_DIR/var/log/sudo.log\" --with-rundir=\"\$ZOPEN_INSTALL_DIR/var/run/sudo\" --with-iologdir=\"\$ZOPEN_INSTALL_DIR/var/run/sudo-io\" --with-logdir=\"\$ZOPEN_INSTALL_DIR/var/log\" --with-relaydir=\"\$ZOPEN_INSTALL_DIR/var/log/sudo_logsrvd\" --without-interfaces --with-runas-default=BPXROOT"
 export ZOPEN_TYPE="TARBALL"
 export ZOPEN_MAKE_MINIMAL="yes"
 export ZOPEN_MAKE_OPTS="-j$NUM_JOBS"
 export ZOPEN_MAKE_CHECK_MINIMAL="yes"
 #TODO: Need to work on some of the tests before enabling
-export ZOPEN_CHECK="skip"
+#export ZOPEN_CHECK="skip"
 export ZOPEN_COMP=CLANG # use clang
 
 zopen_check_results()
