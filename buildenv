@@ -3,11 +3,14 @@ export ZOPEN_GIT_DEPS="make"
 export ZOPEN_TARBALL_URL="https://www.sudo.ws/dist/sudo-1.9.13p3.tar.gz"
 export ZOPEN_TARBALL_DEPS="make coreutils zoslib openssl zlib"
 #TODO: add zlib, openssl
-export ZOPEN_EXTRA_CONFIGURE_OPTS="--sysconfdir=\"\$ZOPEN_INSTALL_DIR/etc\" --with-vardir=\"\$ZOPEN_INSTALL_DIR/var/lib/sudo\" --with-rundir=\"\$ZOPEN_INSTALL_DIR/var/run/sudo\" --with-logpath=\"\$ZOPEN_INSTALL_DIR/var/log/sudo.log\" --with-rundir=\"\$ZOPEN_INSTALL_DIR/var/run/sudo\" --with-iologdir=\"\$ZOPEN_INSTALL_DIR/var/run/sudo-io\" --with-logdir=\"\$ZOPEN_INSTALL_DIR/var/log\" --with-relaydir=\"\$ZOPEN_INSTALL_DIR/var/log/sudo_logsrvd\" --without-interfaces --with-runas-default=BPXROOT"
+export ZOPEN_EXTRA_CONFIGURE_OPTS="--without-interfaces --with-runas-default=BPXROOT"
 export ZOPEN_TYPE="TARBALL"
 export ZOPEN_MAKE_MINIMAL="yes"
 export ZOPEN_MAKE_OPTS="-j$NUM_JOBS"
-export ZOPEN_MAKE_CHECK_MINIMAL="yes"
+export ZOPEN_CHECK_MINIMAL="yes"
+export ZOPEN_CHECK_OPTS="-i check-verbose"
+export ZOPEN_INSTALL_OPTS="install vardir=\"\$ZOPEN_INSTALL_DIR/var/lib/sudo\" sysconfdir=\"\$ZOPEN_INSTALL_DIR/etc\" rundir=\"\$ZOPEN_INSTALL_DIR/var/run/sudo\""
+#export ZOPEN_EXTRA_CONFIGURE_OPTS="--with-vardir=\"\$ZOPEN_INSTALL_DIR/var/lib/sudo\" --with-rundir=\"\$ZOPEN_INSTALL_DIR/var/run/sudo\" --with-logpath=\"\$ZOPEN_INSTALL_DIR/var/log/sudo.log\" --with-rundir=\"\$ZOPEN_INSTALL_DIR/var/run/sudo\" --with-iologdir=\"\$ZOPEN_INSTALL_DIR/var/run/sudo-io\" --with-logdir=\"\$ZOPEN_INSTALL_DIR/var/log\" --with-relaydir=\"\$ZOPEN_INSTALL_DIR/var/log/sudo_logsrvd\" --without-interfaces --with-runas-default=BPXROOT"
 #TODO: Need to work on some of the tests before enabling
 #export ZOPEN_CHECK="skip"
 export ZOPEN_COMP=CLANG # use clang
@@ -31,7 +34,16 @@ zopen_append_to_env()
 
 zopen_append_to_setup()
 {
-  # echo commands that will run when installing via setup.sh
+cat <<EOF
+ if [ "\$(id -u)" -eq 0 ]; then
+    echo "Adding sticky bit to binaries"
+    chown 0:0 \$SUDO_HOME/*bin/*
+    chmod u+s \$SUDO_HOME/*bin/*
+    echo "An example sudoers is provided in \$SUDO_HOME/etc/sudoers"
+ else
+    echo "You must run the setup.sh script as root. Exiting"
+ fi 
+EOF
 }
 
 zopen_get_version()
