@@ -980,7 +980,7 @@ index db65986..67461fa 100644
  
  	    if ((pw = sudo_getpwnam(prev_user)) != NULL) {
 diff --git a/plugins/sudoers/testsudoers.c b/plugins/sudoers/testsudoers.c
-index 3eea349..38951dc 100644
+index 3eea349..6e6dd61 100644
 --- a/plugins/sudoers/testsudoers.c
 +++ b/plugins/sudoers/testsudoers.c
 @@ -187,6 +187,7 @@ main(int argc, char *argv[])
@@ -1001,7 +1001,7 @@ index 3eea349..38951dc 100644
  	if (!dflag)
  	    usage();
 +#ifdef __MVS__
-+	user_name = argc ? *argv++ : (char *)"ROOT";
++	user_name = argc ? *argv++ : (char *)"BPXROOT";
 +#else
  	user_name = argc ? *argv++ : (char *)"root";
 +#endif

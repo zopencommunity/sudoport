@@ -10,21 +10,22 @@ export ZOPEN_MAKE_OPTS="-j$NUM_JOBS"
 export ZOPEN_CHECK_MINIMAL="yes"
 export ZOPEN_CHECK_OPTS="-i check-verbose"
 export ZOPEN_INSTALL_OPTS="install vardir=\"\$ZOPEN_INSTALL_DIR/var/lib/sudo\" sysconfdir=\"\$ZOPEN_INSTALL_DIR/etc\" rundir=\"\$ZOPEN_INSTALL_DIR/var/run/sudo\""
-#export ZOPEN_EXTRA_CONFIGURE_OPTS="--with-vardir=\"\$ZOPEN_INSTALL_DIR/var/lib/sudo\" --with-rundir=\"\$ZOPEN_INSTALL_DIR/var/run/sudo\" --with-logpath=\"\$ZOPEN_INSTALL_DIR/var/log/sudo.log\" --with-rundir=\"\$ZOPEN_INSTALL_DIR/var/run/sudo\" --with-iologdir=\"\$ZOPEN_INSTALL_DIR/var/run/sudo-io\" --with-logdir=\"\$ZOPEN_INSTALL_DIR/var/log\" --with-relaydir=\"\$ZOPEN_INSTALL_DIR/var/log/sudo_logsrvd\" --without-interfaces --with-runas-default=BPXROOT"
-#TODO: Need to work on some of the tests before enabling
-#export ZOPEN_CHECK="skip"
 export ZOPEN_COMP=CLANG # use clang
 
 zopen_check_results()
 {
-  dir="$1"
-  pfx="$2"
-  chk="$1/$2_check.log"
+# Expected success rate should be 91.19%
+chk="$1/$2_check.log"
 
-  # Echo the following information to gauge build health
-  echo "actualFailures:0"
-  echo "totalTests:1"
-  echo "expectedFailures:0"
+successes=$(grep -e ".*: OK" ${chk} | wc -l)
+failures=$(grep -e ".*: FAIL" ${chk} | wc -l)
+totalRunTests=$(($successes+$failures))
+
+cat <<ZZ
+actualFailures:$failures
+totalTests:$totalRunTests
+expectedFailures:23
+ZZ
 }
 
 zopen_append_to_env()
