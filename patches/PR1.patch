@@ -1,5 +1,5 @@
 diff --git a/configure b/configure
-index d406eb7..e484091 100755
+index b4453a8..0682cc0 100755
 --- a/configure
 +++ b/configure
 @@ -10183,6 +10183,10 @@ aix[4-9]*)
@@ -178,6 +178,34 @@ index ccd2fbb..c8c47e5 100644
  	PW_COPY(pw_dir, dsize);
  	PW_COPY(pw_shell, ssize);
  
+diff --git a/lib/util/regress/mktemp/mktemp_test.c b/lib/util/regress/mktemp/mktemp_test.c
+index 134f89e..28fb68f 100644
+--- a/lib/util/regress/mktemp/mktemp_test.c
++++ b/lib/util/regress/mktemp/mktemp_test.c
+@@ -156,7 +156,9 @@ main(int argc, char *argv[])
+ 	clen = strlen(cwd);
+ 	cwd[clen++] = '/';
+ 	cwd[clen] = '\0';
+-#ifdef MAP_ANON
++#ifdef __MVS__
++	p = malloc(pg * 3);
++#elif defined(MAP_ANON)
+ 	p = mmap(NULL, pg * 3, PROT_READ | PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
+ #else
+ 	i = open("/dev/zero", O_RDWR);
+@@ -164,10 +166,12 @@ main(int argc, char *argv[])
+ 		sudo_fatal("/dev/zero");
+ 	p = mmap(NULL, pg * 3, PROT_READ | PROT_WRITE, MAP_PRIVATE, i, 0);
+ #endif
++#ifndef __MVS__
+ 	if (p == MAP_FAILED)
+ 		sudo_fatal("mmap");
+ 	if (mprotect(p, pg, PROT_NONE) || mprotect(p + pg * 2, pg, PROT_NONE))
+ 		sudo_fatal("mprotect");
++#endif
+ 	p += pg;
+ 
+ 	i = MAX_TEMPLATE_LEN + 1;
 diff --git a/lib/util/ttyname_dev.c b/lib/util/ttyname_dev.c
 index 08b9777..2312854 100644
 --- a/lib/util/ttyname_dev.c
@@ -286,7 +314,7 @@ index fb3b435..5cff31a 100644
  # C preprocessor flags
  CPPFLAGS = -I$(incdir) -I$(top_builddir) @CPPFLAGS@
 diff --git a/plugins/sudoers/Makefile.in b/plugins/sudoers/Makefile.in
-index 3dcc746..a0ccb14 100644
+index 6e7c97c..d252a3d 100644
 --- a/plugins/sudoers/Makefile.in
 +++ b/plugins/sudoers/Makefile.in
 @@ -62,10 +62,10 @@ LIBEVENTLOG = $(top_builddir)/lib/eventlog/libsudo_eventlog.la
@@ -627,7 +655,7 @@ index 6b30d03..201712b 100644
  
      /* Set key and datum. */
 diff --git a/plugins/sudoers/defaults.c b/plugins/sudoers/defaults.c
-index e90be1f..3530948 100644
+index e90be1f..0a42cd4 100644
 --- a/plugins/sudoers/defaults.c
 +++ b/plugins/sudoers/defaults.c
 @@ -605,8 +605,19 @@ init_defaults(void)
@@ -640,7 +668,7 @@ index e90be1f..3530948 100644
 +  // give it a second chance. The runas default can be
 +  // configured via /etc/sudoers, but we still need a user name
 +  // here before we even start reading sudoers.
-+  char* runas_default = getpwnam(RUNAS_DEFAULT)? RUNAS_DEFAULT : "ROOT";
++  char* runas_default = getpwnam(RUNAS_DEFAULT) ? RUNAS_DEFAULT : "BPXROOT";
 +  if ((def_runas_default = strdup(runas_default)) == NULL)
 +      goto oom;
 +#else
@@ -922,8 +950,20 @@ index 77ce395..f0c6926 100644
      if (setregid(OID(rgid), OID(egid))) {
  	sudo_warn("setregid() [%d, %d] -> [%d, %d]", (int)state->rgid,
  	    (int)state->egid, (int)OID(rgid), (int)OID(egid));
+diff --git a/plugins/sudoers/sudo_printf.c b/plugins/sudoers/sudo_printf.c
+index 5f07162..eb3fe0a 100644
+--- a/plugins/sudoers/sudo_printf.c
++++ b/plugins/sudoers/sudo_printf.c
+@@ -26,6 +26,7 @@
+ #include <stdio.h>
+ #include <stdarg.h>
+ #include <errno.h>
++#include <fcntl.h>
+ 
+ #include "sudo_compat.h"
+ #include "sudo_plugin.h"
 diff --git a/plugins/sudoers/sudoers.c b/plugins/sudoers/sudoers.c
-index 9ae5f96..15547a6 100644
+index db65986..67461fa 100644
 --- a/plugins/sudoers/sudoers.c
 +++ b/plugins/sudoers/sudoers.c
 @@ -622,7 +622,11 @@ sudoers_policy_main(int argc, char * const argv[], int pwflag, char *env_add[],
@@ -940,7 +980,7 @@ index 9ae5f96..15547a6 100644
  
  	    if ((pw = sudo_getpwnam(prev_user)) != NULL) {
 diff --git a/plugins/sudoers/testsudoers.c b/plugins/sudoers/testsudoers.c
-index 3eea349..38951dc 100644
+index 3eea349..6e6dd61 100644
 --- a/plugins/sudoers/testsudoers.c
 +++ b/plugins/sudoers/testsudoers.c
 @@ -187,6 +187,7 @@ main(int argc, char *argv[])
@@ -961,7 +1001,7 @@ index 3eea349..38951dc 100644
  	if (!dflag)
  	    usage();
 +#ifdef __MVS__
-+	user_name = argc ? *argv++ : (char *)"ROOT";
++	user_name = argc ? *argv++ : (char *)"BPXROOT";
 +#else
  	user_name = argc ? *argv++ : (char *)"root";
 +#endif
@@ -1017,10 +1057,10 @@ index da93c1d..f49e517 100644
  # C preprocessor flags
  CPPFLAGS = -I$(incdir) -I$(top_builddir) @CPPFLAGS@
 diff --git a/scripts/install-sh b/scripts/install-sh
-index 228a0b1..1a2d34c 100755
+index 228a0b1..dc7eaba 100755
 --- a/scripts/install-sh
 +++ b/scripts/install-sh
-@@ -171,12 +171,13 @@ if ${DIRMODE} ; then
+@@ -171,12 +171,14 @@ if ${DIRMODE} ; then
  	if [ ! -d "${DEST}" ] ; then
  	    ${MKDIR} "${DEST}" || exit 1
  	fi
@@ -1030,17 +1070,18 @@ index 228a0b1..1a2d34c 100755
 -	if ${CHGROUPIT} ; then
 -	    ${CHGRP} "${GROUP}" "${DEST}" || exit 1
 -	fi
-+## z/OS: Don't change owner/group as we don't have root privileges at that moment.
-+#      if ${CHOWNIT} ; then
-+#          ${CHOWN} "${OWNER}" "${DEST}" || exit 1
-+#      fi
-+#      if ${CHGROUPIT} ; then
-+#          ${CHGRP} "${GROUP}" "${DEST}" || exit 1
-+#      fi
++  if [ "$(uname -s)" != "OS/390" ]; then
++    if ${CHOWNIT} ; then
++        ${CHOWN} "${OWNER}" "${DEST}" || exit 1
++    fi
++    if ${CHGROUPIT} ; then
++        ${CHGRP} "${GROUP}" "${DEST}" || exit 1
++    fi
++  fi
  	if ${CHMODIT} ; then
  	    ${CHMOD} "${MODE}"  "${DEST}" || exit 1
  	fi
-@@ -227,12 +228,13 @@ fi
+@@ -227,11 +229,13 @@ fi
  if ${STRIPIT} ; then
      ${STRIP} "${DEST}" || exit 1
  fi
@@ -1049,17 +1090,16 @@ index 228a0b1..1a2d34c 100755
 -fi
 -if ${CHGROUPIT} ; then
 -    ${CHGRP} "${GROUP}" "${DEST}" || exit 1
--fi
-+## z/OS: Don't change owner/group as we don't have root privileges at that moment.
-+#      if ${CHOWNIT} ; then
-+#          ${CHOWN} "${OWNER}" "${DEST}" || exit 1
-+#      fi
-+#      if ${CHGROUPIT} ; then
-+#          ${CHGRP} "${GROUP}" "${DEST}" || exit 1
-+#      fi
++if [ "$(uname -s)" != "OS/390" ]; then
++  if ${CHOWNIT} ; then
++      ${CHOWN} "${OWNER}" "${DEST}" || exit 1
++  fi
++  if ${CHGROUPIT} ; then
++      ${CHGRP} "${GROUP}" "${DEST}" || exit 1
++  fi
+ fi
  if ${CHMODIT} ; then
      ${CHMOD} "${MODE}" "${DEST}" || exit 1
- fi
 diff --git a/src/Makefile.in b/src/Makefile.in
 index d9fa3a6..d882b48 100644
 --- a/src/Makefile.in
