@@ -1,12 +1,13 @@
 export ZOPEN_GIT_URL="https://github.com/sudo-project/sudo.git"
-export ZOPEN_GIT_DEPS="make"
-export ZOPEN_TARBALL_URL="https://www.sudo.ws/dist/sudo-1.9.13p3.tar.gz"
+export ZOPEN_GIT_DEPS="make coreutils zoslib openssl zlib"
+SUDO_VERSION="1.9.13p3"
+export ZOPEN_TARBALL_URL="https://www.sudo.ws/dist/sudo-$SUDO_VERSION.tar.gz"
 export ZOPEN_TARBALL_DEPS="make coreutils zoslib openssl zlib"
 #TODO: add zlib, openssl
 export ZOPEN_EXTRA_CONFIGURE_OPTS="--without-interfaces --with-runas-default=BPXROOT"
 export ZOPEN_TYPE="TARBALL"
 export ZOPEN_MAKE_MINIMAL="yes"
-export ZOPEN_MAKE_OPTS="-j$NUM_JOBS"
+export ZOPEN_MAKE_OPTS="-j\$ZOPEN_NUM_JOBS"
 export ZOPEN_CHECK_MINIMAL="yes"
 export ZOPEN_CHECK_OPTS="-i check-verbose"
 export ZOPEN_INSTALL_OPTS="install vardir=\"\$ZOPEN_INSTALL_DIR/var/lib/sudo\" sysconfdir=\"\$ZOPEN_INSTALL_DIR/etc\" rundir=\"\$ZOPEN_INSTALL_DIR/var/run/sudo\""
@@ -49,7 +50,5 @@ EOF
 
 zopen_get_version()
 {
-  # Modify to echo the version of your tool/library
-  # Rather than hardcoding the version, obtain the version by running the tool/library
-  echo "1.0.0"
+  echo "$SUDO_VERSION"
 }
