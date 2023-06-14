@@ -1,8 +1,8 @@
 export ZOPEN_GIT_URL="https://github.com/sudo-project/sudo.git"
-export ZOPEN_GIT_DEPS="make coreutils zoslib openssl zlib"
+export ZOPEN_GIT_DEPS="make coreutils zoslib openssl zlib gawk"
 SUDO_VERSION="1.9.13p3"
 export ZOPEN_TARBALL_URL="https://www.sudo.ws/dist/sudo-$SUDO_VERSION.tar.gz"
-export ZOPEN_TARBALL_DEPS="make coreutils zoslib openssl zlib"
+export ZOPEN_TARBALL_DEPS="make coreutils zoslib openssl zlib gawk"
 #TODO: add zlib, openssl
 export ZOPEN_EXTRA_CONFIGURE_OPTS="--without-interfaces --with-runas-default=BPXROOT"
 export ZOPEN_TYPE="TARBALL"
@@ -31,7 +31,14 @@ ZZ
 
 zopen_append_to_env()
 {
-  # echo envars outside of PATH, MANPATH, LIBPATH
+cat <<EOF
+  export PATH="\$PWD/sbin:\$PATH"
+EOF
+}
+
+zopen_post_install()
+{
+  #TODO: consideration: remove world access to sbin directory?
 }
 
 zopen_append_to_setup()
@@ -41,10 +48,13 @@ cat <<EOF
     echo "Adding sticky bit to binaries"
     chown 0:0 \$SUDO_HOME/*bin/*
     chmod u+s \$SUDO_HOME/*bin/*
-    echo "An example sudoers is provided in \$SUDO_HOME/etc/sudoers"
  else
-    echo "You must run the setup.sh script as root. Exiting"
+    echo "WARNING: Either run the setup.sh script as root or run the following commands with elevated privileges:"
+    echo "chown 0:0 \$SUDO_HOME/*bin/*"
+    echo "chmod u+s \$SUDO_HOME/*bin/*"
  fi 
+ echo "An example sudoers is provided in \$SUDO_HOME/etc/sudoers"
+ echo "An example sudo.conf is provided in \$SUDO_HOME/etc/sudo.conf"
 EOF
 }
 

@@ -206,6 +206,277 @@ index 134f89e..28fb68f 100644
  	p += pg;
  
  	i = MAX_TEMPLATE_LEN + 1;
+diff --git a/lib/util/sig2str.c b/lib/util/sig2str.c
+index 1d86021..19a24c5 100644
+--- a/lib/util/sig2str.c
++++ b/lib/util/sig2str.c
+@@ -35,6 +35,251 @@
+ #include "sudo_util.h"
+ 
+ #if !defined(HAVE_SIGABBREV_NP)
++# if defined(__MVS__)
++//From GNULIB:
++//TODO: Move to z/OS lib or pull directly from gnulib
++//TODO: Can we just call strsignal and return ptr+3?
++const char *
++sigabbrev_np (int sig)
++{
++  switch (sig)
++    {
++    /* Signals specified by ISO C.  */
++    case SIGABRT:     return "ABRT";
++    case SIGFPE:      return "FPE";
++    case SIGILL:      return "ILL";
++    case SIGINT:      return "INT";
++    case SIGSEGV:     return "SEGV";
++    case SIGTERM:     return "TERM";
++
++    /* Signals specified by POSIX.
++       <https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/signal.h.html>  */
++    #if defined SIGALRM
++    case SIGALRM:     return "ALRM";
++    #endif
++    #if defined SIGBUS
++    case SIGBUS:      return "BUS";
++    #endif
++    #if defined SIGCHLD
++    case SIGCHLD:     return "CHLD";
++    #endif
++    #if defined SIGCONT
++    case SIGCONT:     return "CONT";
++    #endif
++    #if defined SIGHUP
++    case SIGHUP:      return "HUP";
++    #endif
++    #if defined SIGKILL
++    case SIGKILL:     return "KILL";
++    #endif
++    #if defined SIGPIPE
++    case SIGPIPE:     return "PIPE";
++    #endif
++    #if defined SIGQUIT
++    case SIGQUIT:     return "QUIT";
++    #endif
++    #if defined SIGSTOP
++    case SIGSTOP:     return "STOP";
++    #endif
++    #if defined SIGTSTP
++    case SIGTSTP:     return "TSTP";
++    #endif
++    #if defined SIGTTIN
++    case SIGTTIN:     return "TTIN";
++    #endif
++    #if defined SIGTTOU
++    case SIGTTOU:     return "TTOU";
++    #endif
++    #if defined SIGUSR1
++    case SIGUSR1:     return "USR1";
++    #endif
++    #if defined SIGUSR2
++    case SIGUSR2:     return "USR2";
++    #endif
++    #if defined SIGPOLL
++    case SIGPOLL:     return "POLL";
++    #endif
++    #if defined SIGPROF
++    case SIGPROF:     return "PROF";
++    #endif
++    #if defined SIGSYS
++    case SIGSYS:      return "SYS";
++    #endif
++    #if defined SIGTRAP
++    case SIGTRAP:     return "TRAP";
++    #endif
++    #if defined SIGURG
++    case SIGURG:      return "URG";
++    #endif
++    #if defined SIGVTALRM
++    case SIGVTALRM:   return "VTALRM";
++    #endif
++    #if defined SIGXCPU
++    case SIGXCPU:     return "XCPU";
++    #endif
++    #if defined SIGXFSZ
++    case SIGXFSZ:     return "XFSZ";
++    #endif
++
++    /* Other signals on other systems.  */
++    /* native Windows */
++    #if defined SIGBREAK
++    case SIGBREAK:    return "BREAK";
++    #endif
++    /* IRIX */
++    #if defined SIGCKPT
++    case SIGCKPT:     return "CKPT";
++    #endif
++    /* Linux, IRIX, Cygwin */
++    #if defined SIGCLD && SIGCLD != SIGCHLD
++    case SIGCLD:      return "CLD";
++    #endif
++    /* AIX */
++    #if defined SIGCPUFAIL
++    case SIGCPUFAIL:  return "CPUFAIL";
++    #endif
++    /* AIX */
++    #if defined SIGDANGER
++    case SIGDANGER:   return "DANGER";
++    #endif
++    /* Mac OS X, FreeBSD, NetBSD, OpenBSD, Minix, AIX, IRIX, Cygwin, mingw */
++    #if defined SIGEMT
++    case SIGEMT:      return "EMT";
++    #endif
++    /* Mac OS X, FreeBSD, NetBSD, OpenBSD, Minix */
++    #if defined SIGINFO && SIGINFO != SIGPWR
++    case SIGINFO:     return "INFO";
++    #endif
++    /* Linux, Mac OS X, FreeBSD, NetBSD, OpenBSD, Minix, AIX, IRIX, Cygwin */
++    #if defined SIGIO && SIGIO != SIGPOLL
++    case SIGIO:       return "IO";
++    #endif
++    /* Linux, IRIX, Cygwin, mingw */
++    #if defined SIGIOT && SIGIOT != SIGABRT
++    case SIGIOT:      return "IOT";
++    #endif
++    /* AIX */
++    #if defined SIGKAP
++    case SIGKAP:      return "KAP";
++    #endif
++    /* Haiku */
++    #if defined SIGKILLTHR
++    case SIGKILLTHR:  return "KILLTHR";
++    #endif
++    /* Minix */
++    #if defined SIGKMEM
++    case SIGKMEM:     return "KMEM";
++    #endif
++    /* Minix */
++    #if defined SIGKMESS
++    case SIGKMESS:    return "KMESS";
++    #endif
++    /* Minix */
++    #if defined SIGKSIG
++    case SIGKSIG:     return "KSIG";
++    #endif
++    /* Minix */
++    #if defined SIGKSIGSM
++    case SIGKSIGSM:   return "KSIGSM";
++    #endif
++    /* FreeBSD */
++    #if defined SIGLIBRT
++    case SIGLIBRT:    return "LIBRT";
++    #endif
++    /* Cygwin */
++    #if defined SIGLOST && SIGLOST != SIGABRT && SIGLOST != SIGPWR
++    case SIGLOST:     return "LOST";
++    #endif
++    /* AIX */
++    #if defined SIGMIGRATE
++    case SIGMIGRATE:  return "MIGRATE";
++    #endif
++    /* AIX */
++    #if defined SIGMSG
++    case SIGMSG:      return "MSG";
++    #endif
++    /* AIX */
++    #if defined SIGPRE
++    case SIGPRE:      return "PRE";
++    #endif
++    /* IRIX */
++    #if defined SIGPTINTR
++    case SIGPTINTR:   return "PTINTR";
++    #endif
++    /* IRIX */
++    #if defined SIGPTRESCHED
++    case SIGPTRESCHED:return "PTRESCHED";
++    #endif
++    /* Linux, NetBSD, Minix, AIX, IRIX, Cygwin */
++    #if defined SIGPWR
++    case SIGPWR:      return "PWR";
++    #endif
++    /* AIX */
++    #if defined SIGRECONFIG
++    case SIGRECONFIG: return "RECONFIG";
++    #endif
++    /* AIX */
++    #if defined SIGRECOVERY
++    case SIGRECOVERY: return "RECOVERY";
++    #endif
++    /* IRIX */
++    #if defined SIGRESTART
++    case SIGRESTART:  return "RESTART";
++    #endif
++    /* AIX */
++    #if defined SIGRETRACT
++    case SIGRETRACT:  return "RETRACT";
++    #endif
++    /* AIX */
++    #if defined SIGSAK
++    case SIGSAK:      return "SAK";
++    #endif
++    /* Minix */
++    #if defined SIGSNDELAY
++    case SIGSNDELAY:  return "SNDELAY";
++    #endif
++    /* AIX */
++    #if defined SIGSOUND
++    case SIGSOUND:    return "SOUND";
++    #endif
++    /* Linux */
++    #if defined SIGSTKFLT
++    case SIGSTKFLT:   return "STKFLT";
++    #endif
++    /* AIX */
++    #if defined SIGSYSERROR
++    case SIGSYSERROR: return "SYSERROR";
++    #endif
++    /* AIX */
++    #if defined SIGTALRM
++    case SIGTALRM:    return "TALRM";
++    #endif
++    /* FreeBSD, OpenBSD */
++    #if defined SIGTHR
++    case SIGTHR:      return "THR";
++    #endif
++    /* IRIX */
++    #if defined SIGUME
++    case SIGUME:      return "UME";
++    #endif
++    /* AIX */
++    #if defined SIGVIRT
++    case SIGVIRT:     return "VIRT";
++    #endif
++    /* AIX */
++    #if defined SIGWAITING
++    case SIGWAITING:  return "WAITING";
++    #endif
++    /* Linux, Mac OS X, FreeBSD, NetBSD, OpenBSD, Minix, AIX, IRIX, Cygwin, Haiku */
++    #if defined SIGWINCH
++    case SIGWINCH:    return "WINCH";
++    #endif
++
++    default:
++      return NULL;
++    }
++}
++# endif
+ # if defined(HAVE_DECL_SYS_SIGNAME) && HAVE_DECL_SYS_SIGNAME == 1
+ #   define sigabbrev_np(_x)	sys_signame[(_x)]
+ # elif defined(HAVE_DECL__SYS_SIGNAME) && HAVE_DECL__SYS_SIGNAME == 1
+diff --git a/lib/util/str2sig.c b/lib/util/str2sig.c
+index e265ec4..490ae67 100644
+--- a/lib/util/str2sig.c
++++ b/lib/util/str2sig.c
+@@ -38,6 +38,10 @@
+ #include "sudo_util.h"
+ 
+ #if !defined(HAVE_SIGABBREV_NP)
++#ifdef __MVS__
++extern const char *
++sigabbrev_np (int sig);
++#endif
+ # if defined(HAVE_DECL_SYS_SIGNAME) && HAVE_DECL_SYS_SIGNAME == 1
+ #   define sigabbrev_np(_x)	sys_signame[(_x)]
+ # elif defined(HAVE_DECL__SYS_SIGNAME) && HAVE_DECL__SYS_SIGNAME == 1
 diff --git a/lib/util/ttyname_dev.c b/lib/util/ttyname_dev.c
 index 08b9777..2312854 100644
 --- a/lib/util/ttyname_dev.c
@@ -314,7 +585,7 @@ index fb3b435..5cff31a 100644
  # C preprocessor flags
  CPPFLAGS = -I$(incdir) -I$(top_builddir) @CPPFLAGS@
 diff --git a/plugins/sudoers/Makefile.in b/plugins/sudoers/Makefile.in
-index 6e7c97c..d252a3d 100644
+index 6e7c97c..044533a 100644
 --- a/plugins/sudoers/Makefile.in
 +++ b/plugins/sudoers/Makefile.in
 @@ -62,10 +62,10 @@ LIBEVENTLOG = $(top_builddir)/lib/eventlog/libsudo_eventlog.la
@@ -330,6 +601,32 @@ index 6e7c97c..d252a3d 100644
  VISUDO_LIBS = $(NET_LIBS)
  CVTSUDOERS_LIBS = $(NET_LIBS)
  TESTSUDOERS_LIBS = $(NET_LIBS)
+@@ -389,7 +389,7 @@ check_gentime: $(CHECK_GENTIME_OBJS) $(LIBUTIL)
+ 	$(LIBTOOL) $(LTFLAGS) --mode=link $(CC) -o $@ $(CHECK_GENTIME_OBJS) $(LDFLAGS) $(ASAN_LDFLAGS) $(PIE_LDFLAGS) $(HARDENING_LDFLAGS) $(LIBS)
+ 
+ check_iolog_plugin: $(CHECK_IOLOG_PLUGIN_OBJS) $(LIBUTIL) $(LIBIOLOG) $(LIBLOGSRV)
+-	$(LIBTOOL) $(LTFLAGS) --mode=link $(CC) -o $@ $(CHECK_IOLOG_PLUGIN_OBJS) $(LDFLAGS) $(ASAN_LDFLAGS) $(PIE_LDFLAGS) $(HARDENING_LDFLAGS) $(LIBIOLOG) $(LIBLOGSRV) @LIBTLS@
++	$(LIBTOOL) $(LTFLAGS) --mode=link $(CC) -o $@ $(CHECK_IOLOG_PLUGIN_OBJS) $(LDFLAGS) $(ASAN_LDFLAGS) $(PIE_LDFLAGS) $(HARDENING_LDFLAGS) $(LIBIOLOG) $(LIBLOGSRV) @LIBTLS@ $(LIBS)
+ 
+ check_serialize_list: $(CHECK_SERIALIZE_LIST_OBJS) $(LIBUTIL)
+ 	$(LIBTOOL) $(LTFLAGS) --mode=link $(CC) -o $@ $(CHECK_SERIALIZE_LIST_OBJS) $(LDFLAGS) $(ASAN_LDFLAGS) $(PIE_LDFLAGS) $(HARDENING_LDFLAGS) $(LIBS)
+@@ -405,13 +405,13 @@ check_symbols: $(CHECK_SYMBOLS_OBJS) $(LIBUTIL)
+ 	$(LIBTOOL) $(LTFLAGS) --mode=link $(CC) -o $@ $(CHECK_SYMBOLS_OBJS) $(CHECK_SYMBOLS_LDFLAGS) $(LDFLAGS) $(ASAN_LDFLAGS) $(PIE_LDFLAGS) $(HARDENING_LDFLAGS) $(LIBS) @SUDO_LIBS@
+ 
+ fuzz_policy: $(FUZZ_POLICY_OBJS) libparsesudoers.la $(LIBEVENTLOG) $(LIBUTIL) $(LIBFUZZSTUB)
+-	$(LIBTOOL) $(LTFLAGS) --mode=link @FUZZ_LD@ -o $@ $(FUZZ_POLICY_OBJS) $(LDFLAGS) $(ASAN_LDFLAGS) $(PIE_LDFLAGS) $(HARDENING_LDFLAGS) $(FUZZ_LDFLAGS) $(FUZZ_LIBS) $(LIBEVENTLOG)
++	$(LIBTOOL) $(LTFLAGS) --mode=link @FUZZ_LD@ -o $@ $(FUZZ_POLICY_OBJS) $(LDFLAGS) $(ASAN_LDFLAGS) $(PIE_LDFLAGS) $(HARDENING_LDFLAGS) $(FUZZ_LDFLAGS) $(FUZZ_LIBS) $(LIBEVENTLOG) $(LIBS)
+ 
+ fuzz_sudoers: $(FUZZ_SUDOERS_OBJS) libparsesudoers.la $(LIBUTIL) $(LIBFUZZSTUB)
+-	$(LIBTOOL) $(LTFLAGS) --mode=link @FUZZ_LD@ -o $@ $(FUZZ_SUDOERS_OBJS) $(LDFLAGS) $(ASAN_LDFLAGS) $(PIE_LDFLAGS) $(HARDENING_LDFLAGS) $(FUZZ_LDFLAGS) $(FUZZ_LIBS) $(LIBUTIL)
++	$(LIBTOOL) $(LTFLAGS) --mode=link @FUZZ_LD@ -o $@ $(FUZZ_SUDOERS_OBJS) $(LDFLAGS) $(ASAN_LDFLAGS) $(PIE_LDFLAGS) $(HARDENING_LDFLAGS) $(FUZZ_LDFLAGS) $(FUZZ_LIBS) $(LIBUTIL) $(LIBS)
+ 
+ fuzz_sudoers_ldif: $(FUZZ_SUDOERS_LDIF_OBJS) libparsesudoers.la $(LIBUTIL) $(LIBFUZZSTUB)
+-	$(LIBTOOL) $(LTFLAGS) --mode=link @FUZZ_LD@ -o $@ $(FUZZ_SUDOERS_LDIF_OBJS) $(LDFLAGS) $(ASAN_LDFLAGS) $(PIE_LDFLAGS) $(HARDENING_LDFLAGS) $(FUZZ_LDFLAGS) $(FUZZ_LIBS) $(LIBUTIL)
++	$(LIBTOOL) $(LTFLAGS) --mode=link @FUZZ_LD@ -o $@ $(FUZZ_SUDOERS_LDIF_OBJS) $(LDFLAGS) $(ASAN_LDFLAGS) $(PIE_LDFLAGS) $(HARDENING_LDFLAGS) $(FUZZ_LDFLAGS) $(FUZZ_LIBS) $(LIBUTIL) $(LIBS)
+ 
+ fuzz_policy_seed_corpus.zip:
+ 	tdir=fuzz_policy.$$$$; \
 diff --git a/plugins/sudoers/auth/passwd.c b/plugins/sudoers/auth/passwd.c
 index 6967e4f..0acf342 100644
 --- a/plugins/sudoers/auth/passwd.c
@@ -568,10 +865,20 @@ index 6967e4f..0acf342 100644
 +  debug_return_int(AUTH_SUCCESS);
  }
 diff --git a/plugins/sudoers/check_aliases.c b/plugins/sudoers/check_aliases.c
-index 1b3d030..d9660b0 100644
+index 1b3d030..bd8ee93 100644
 --- a/plugins/sudoers/check_aliases.c
 +++ b/plugins/sudoers/check_aliases.c
-@@ -132,6 +132,18 @@ check_alias(struct sudoers_parse_tree *parse_tree,
+@@ -28,6 +28,9 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <errno.h>
++#ifdef __MVS__
++#include <pwd.h>
++#endif
+ 
+ #include "sudoers.h"
+ #include <gram.h>
+@@ -132,6 +135,18 @@ check_alias(struct sudoers_parse_tree *parse_tree,
  		alias_warnx(file, line, column, strict, quiet,
  		    N_("cycle in %s \"%s\""), alias_type_to_string(type), name);
  	    } else {
@@ -655,10 +962,20 @@ index 6b30d03..201712b 100644
  
      /* Set key and datum. */
 diff --git a/plugins/sudoers/defaults.c b/plugins/sudoers/defaults.c
-index e90be1f..0a42cd4 100644
+index e90be1f..9365744 100644
 --- a/plugins/sudoers/defaults.c
 +++ b/plugins/sudoers/defaults.c
-@@ -605,8 +605,19 @@ init_defaults(void)
+@@ -42,6 +42,9 @@
+ #include "sudo_eventlog.h"
+ #include "sudo_iolog.h"
+ #include <gram.h>
++#ifdef __MVS__
++#include <pwd.h>
++#endif
+ 
+ static struct early_default early_defaults[] = {
+     { I_IGNORE_UNKNOWN_DEFAULTS },
+@@ -605,8 +608,19 @@ init_defaults(void)
  	goto oom;
      if ((def_passprompt = strdup(_(PASSPROMPT))) == NULL)
  	goto oom;
@@ -668,7 +985,7 @@ index e90be1f..0a42cd4 100644
 +  // give it a second chance. The runas default can be
 +  // configured via /etc/sudoers, but we still need a user name
 +  // here before we even start reading sudoers.
-+  char* runas_default = getpwnam(RUNAS_DEFAULT) ? RUNAS_DEFAULT : "BPXROOT";
++  char* runas_default = getpwnam(RUNAS_DEFAULT) ? RUNAS_DEFAULT : "ROOT";
 +  if ((def_runas_default = strdup(runas_default)) == NULL)
 +      goto oom;
 +#else
@@ -811,6 +1128,26 @@ index 199cb5e..e5f2d48 100644
      FIELD_COPY(gr, newgr, gr_name, nsize);
  
      /* Set key and datum. */
+diff --git a/plugins/sudoers/regress/testsudoers/test9.sh b/plugins/sudoers/regress/testsudoers/test9.sh
+index 850bbac..582a85b 100755
+--- a/plugins/sudoers/regress/testsudoers/test9.sh
++++ b/plugins/sudoers/regress/testsudoers/test9.sh
+@@ -8,7 +8,14 @@
+ MYUID=`\ls -ln $TESTDIR/test2.inc | awk '{print $3}'`
+ MYGID=`\ls -ln $TESTDIR/test2.inc | awk '{print $4}'`
+ exec 2>&1
+-$TESTSUDOERS -U $MYUID -G $MYGID root id <<EOF
++
++if [ "$(uname -s)" == "OS/390" ]; then
++root="BPXROOT"
++else
++root="root"
++fi
++
++$TESTSUDOERS -U $MYUID -G $MYGID $root id <<EOF
+ #include $TESTDIR/test2.inc
+ EOF
+ 
 diff --git a/plugins/sudoers/set_perms.c b/plugins/sudoers/set_perms.c
 index 77ce395..f0c6926 100644
 --- a/plugins/sudoers/set_perms.c
@@ -963,7 +1300,7 @@ index 5f07162..eb3fe0a 100644
  #include "sudo_compat.h"
  #include "sudo_plugin.h"
 diff --git a/plugins/sudoers/sudoers.c b/plugins/sudoers/sudoers.c
-index db65986..67461fa 100644
+index db65986..1848bc1 100644
 --- a/plugins/sudoers/sudoers.c
 +++ b/plugins/sudoers/sudoers.c
 @@ -622,7 +622,11 @@ sudoers_policy_main(int argc, char * const argv[], int pwflag, char *env_add[],
@@ -972,7 +1309,7 @@ index db65986..67461fa 100644
      if (ISSET(sudo_mode, MODE_RUN|MODE_EDIT) && prev_user != NULL) {
 -	if (user_uid == 0 && strcmp(prev_user, "root") != 0) {
 +#ifdef __MVS__
-+       if (user_uid == 0 && strcmp(prev_user, "ROOT") != 0) {
++       if (user_uid == 0 && strcmp(prev_user, "BPXROOT") != 0) {
 +#else /* !__MVS__ */
 +       if (user_uid == 0 && strcmp(prev_user, "root") != 0) {
 +#endif /* __MVS__ */
