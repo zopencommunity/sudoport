@@ -1,0 +1,34 @@
+diff --git a/plugins/sudoers/defaults.c b/plugins/sudoers/defaults.c
+index e90be1f..9365744 100644
+--- a/plugins/sudoers/defaults.c
++++ b/plugins/sudoers/defaults.c
+@@ -42,6 +42,9 @@
+ #include "sudo_eventlog.h"
+ #include "sudo_iolog.h"
+ #include <gram.h>
++#ifdef __MVS__
++#include <pwd.h>
++#endif
+ 
+ static struct early_default early_defaults[] = {
+     { I_IGNORE_UNKNOWN_DEFAULTS },
+@@ -605,8 +608,19 @@ init_defaults(void)
+ 	goto oom;
+     if ((def_passprompt = strdup(_(PASSPROMPT))) == NULL)
+ 	goto oom;
++#ifdef __MVS__
++  // z/OS USS is supposed to have BPXROOT as a superuser;
++  // however, some installations have ROOT instead, so we
++  // give it a second chance. The runas default can be
++  // configured via /etc/sudoers, but we still need a user name
++  // here before we even start reading sudoers.
++  char* runas_default = getpwnam(RUNAS_DEFAULT) ? RUNAS_DEFAULT : "ROOT";
++  if ((def_runas_default = strdup(runas_default)) == NULL)
++      goto oom;
++#else
+     if ((def_runas_default = strdup(RUNAS_DEFAULT)) == NULL)
+ 	goto oom;
++#endif
+ #ifdef _PATH_SUDO_SENDMAIL
+     if ((def_mailerpath = strdup(_PATH_SUDO_SENDMAIL)) == NULL)
+ 	goto oom;

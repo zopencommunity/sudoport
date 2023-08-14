@@ -1,0 +1,13 @@
+diff --git a/src/Makefile.in b/src/Makefile.in
+index d9fa3a6..d882b48 100644
+--- a/src/Makefile.in
++++ b/src/Makefile.in
+@@ -47,7 +47,7 @@ INSTALL_BACKUP = @INSTALL_BACKUP@
+ # Libraries
+ LT_LIBS = $(top_builddir)/lib/util/libsudo_util.la \
+ 	  $(top_builddir)/lib/protobuf-c/libprotobuf-c.la
+-LIBS = @LIBS@ @SUDO_LIBS@ @GETGROUPS_LIB@ @NET_LIBS@ $(LT_LIBS)
++LIBS = @LIBS@ @SUDO_LIBS@ @GETGROUPS_LIB@ @NET_LIBS@ $(LT_LIBS) @LIBS@
+ 
+ # C preprocessor defines
+ CPPDEFS = -D_PATH_SUDO_CONF=\"$(sysconfdir)/sudo.conf\" \

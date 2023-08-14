@@ -1,0 +1,13 @@
+diff --git a/plugins/python/Makefile.in b/plugins/python/Makefile.in
+index e79f570..d261aa5 100644
+--- a/plugins/python/Makefile.in
++++ b/plugins/python/Makefile.in
+@@ -47,7 +47,7 @@ INSTALL_BACKUP = @INSTALL_BACKUP@
+ 
+ # Libraries
+ LT_LIBS = $(top_builddir)/lib/util/libsudo_util.la
+-LIBS = $(LT_LIBS)
++LIBS = $(LT_LIBS) @LIBS@
+ 
+ LIBPYTHONPLUGIN = python_plugin.la
+ 

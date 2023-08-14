@@ -1,0 +1,44 @@
+diff --git a/scripts/install-sh b/scripts/install-sh
+index 228a0b1..dc7eaba 100755
+--- a/scripts/install-sh
++++ b/scripts/install-sh
+@@ -171,12 +171,14 @@ if ${DIRMODE} ; then
+ 	if [ ! -d "${DEST}" ] ; then
+ 	    ${MKDIR} "${DEST}" || exit 1
+ 	fi
+-	if ${CHOWNIT} ; then
+-	    ${CHOWN} "${OWNER}" "${DEST}" || exit 1
+-	fi
+-	if ${CHGROUPIT} ; then
+-	    ${CHGRP} "${GROUP}" "${DEST}" || exit 1
+-	fi
++  if [ "$(uname -s)" != "OS/390" ]; then
++    if ${CHOWNIT} ; then
++        ${CHOWN} "${OWNER}" "${DEST}" || exit 1
++    fi
++    if ${CHGROUPIT} ; then
++        ${CHGRP} "${GROUP}" "${DEST}" || exit 1
++    fi
++  fi
+ 	if ${CHMODIT} ; then
+ 	    ${CHMOD} "${MODE}"  "${DEST}" || exit 1
+ 	fi
+@@ -227,11 +229,13 @@ fi
+ if ${STRIPIT} ; then
+     ${STRIP} "${DEST}" || exit 1
+ fi
+-if ${CHOWNIT} ; then
+-    ${CHOWN} "${OWNER}" "${DEST}" || exit 1
+-fi
+-if ${CHGROUPIT} ; then
+-    ${CHGRP} "${GROUP}" "${DEST}" || exit 1
++if [ "$(uname -s)" != "OS/390" ]; then
++  if ${CHOWNIT} ; then
++      ${CHOWN} "${OWNER}" "${DEST}" || exit 1
++  fi
++  if ${CHGROUPIT} ; then
++      ${CHGRP} "${GROUP}" "${DEST}" || exit 1
++  fi
+ fi
+ if ${CHMODIT} ; then
+     ${CHMOD} "${MODE}" "${DEST}" || exit 1

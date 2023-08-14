@@ -1,0 +1,18 @@
+diff --git a/plugins/sudoers/getspwuid.c b/plugins/sudoers/getspwuid.c
+index 650b3f3..51c84a4 100644
+--- a/plugins/sudoers/getspwuid.c
++++ b/plugins/sudoers/getspwuid.c
+@@ -106,8 +106,11 @@ sudo_getepw(const struct passwd *pw)
+ #if defined(HAVE_ISCOMSEC)
+ done:
+ #endif
+-    /* If no shadow password, fall back on regular password. */
+-    debug_return_str(strdup(epw ? epw : pw->pw_passwd));
++#ifndef __MVS__
++     debug_return_str(strdup(epw ? epw : pw->pw_passwd));
++#else
++    return NULL;
++#endif
+ }
+ 
+ void

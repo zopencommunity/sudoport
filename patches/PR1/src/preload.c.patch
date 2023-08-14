@@ -1,0 +1,14 @@
+diff --git a/src/preload.c b/src/preload.c
+index 907ebd5..65bccb8 100644
+--- a/src/preload.c
++++ b/src/preload.c
+@@ -65,6 +65,9 @@ static struct sudo_preload_symbol sudo_sudoers_plugin_symbols[] = {
+ static struct sudo_preload_table sudo_preload_table[] = {
+     { (char *)0, SUDO_DSO_DEFAULT, sudo_rtld_default_symbols },
+     { _PATH_SUDOERS_PLUGIN, &sudo_sudoers_plugin_symbols, sudo_sudoers_plugin_symbols },
++#ifdef __MVS__
++    { "/etc/sudoers", &sudo_sudoers_plugin_symbols, sudo_sudoers_plugin_symbols },
++#endif
+     { (char *)0, (void *)0, (struct sudo_preload_symbol *)0 }
+ };
+ 

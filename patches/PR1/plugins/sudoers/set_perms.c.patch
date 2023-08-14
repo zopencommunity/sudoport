@@ -1,0 +1,139 @@
+diff --git a/plugins/sudoers/set_perms.c b/plugins/sudoers/set_perms.c
+index 77ce395..f0c6926 100644
+--- a/plugins/sudoers/set_perms.c
++++ b/plugins/sudoers/set_perms.c
+@@ -939,6 +939,20 @@ set_perms(int perm)
+ 		goto bad;
+ 	    }
+ 	}
++#ifdef __MVS__
++  /* can't change EUID directly */
++  if (getuid() == ROOT_UID &&
++      geteuid() == ROOT_UID &&
++      user_uid != ROOT_UID)
++  {
++      state->ruid = user_uid;
++      state->euid = ROOT_UID;
++      if (UID_CHANGED && setreuid(ID(ruid), ROOT_UID)) {
++          strlcpy(errbuf, _("unable to change to user ruid"), sizeof(errbuf));
++          goto bad;
++      }
++  }
++#endif /* __MVS__ */
+ 	state->ruid = ROOT_UID;
+ 	state->euid = user_uid;
+ 	sudo_debug_printf(SUDO_DEBUG_INFO, "%s: PERM_USER: uid: "
+@@ -953,6 +967,20 @@ set_perms(int perm)
+ 
+     case PERM_FULL_USER:
+ 	/* headed for exec() */
++#ifdef __MVS__
++  /* can't change RUID and EUID directly */
++  if (getuid() == ROOT_UID &&
++      geteuid() == ROOT_UID &&
++      user_uid != ROOT_UID)
++  {
++      state->ruid = user_uid;
++      state->euid = ROOT_UID;
++      if (UID_CHANGED && setreuid(ID(ruid), ROOT_UID)) {
++          strlcpy(errbuf, _("unable to change to full user ruid"), sizeof(errbuf));
++         goto bad;
++      }
++  }
++#endif /* __MVS__ */
+ 	state->rgid = user_gid;
+ 	state->egid = user_gid;
+ 	sudo_debug_printf(SUDO_DEBUG_INFO, "%s: PERM_FULL_USER: gid: "
+@@ -1000,6 +1028,19 @@ set_perms(int perm)
+ 	    errstr = N_("unable to set runas group vector");
+ 	    goto bad;
+ 	}
++#ifdef __MVS__
++   /* can't change EUID directly */
++   if (ostate->euid == ROOT_UID)
++   {
++       state->ruid = runas_pw ? runas_pw->pw_uid : user_uid;
++       state->euid = ROOT_UID;
++       if (UID_CHANGED && setreuid(ID(ruid), ROOT_UID)) {
++           strlcpy(errbuf, _("unable to change to runas ruid"), sizeof(errbuf));
++           goto bad;
++       }
++  }
++#endif /* __MVS__ */
++#ifndef __MVS__
+ 	state->ruid = ROOT_UID;
+ 	state->euid = runas_pw ? runas_pw->pw_uid : user_uid;
+ 	sudo_debug_printf(SUDO_DEBUG_INFO, "%s: PERM_RUNAS: uid: "
+@@ -1009,6 +1050,7 @@ set_perms(int perm)
+ 	    errstr = N_("unable to change to runas uid");
+ 	    goto bad;
+ 	}
++#endif
+ 	break;
+ 
+     case PERM_SUDOERS:
+@@ -1052,6 +1094,19 @@ set_perms(int perm)
+ 	sudo_gidlist_addref(state->gidlist);
+ 	state->rgid = ostate->rgid;
+ 	state->egid = ostate->egid;
++#ifdef __MVS__
++        /* can't change EUID directly */
++        if (ostate->euid == ROOT_UID)
++        {
++            state->ruid = timestamp_uid;
++            state->euid = ROOT_UID;
++/*            if (UID_CHANGED && setreuid(ID(ruid), ID(euid))) { */
++            if (UID_CHANGED && setreuid(ID(ruid), ROOT_UID)) {
++                strlcpy(errbuf, _("unable to change to timestamp ruid"), sizeof(errbuf));
++                goto bad;
++            }
++        }
++#endif /* __MVS__ */
+ 	state->ruid = ROOT_UID;
+ 	state->euid = timestamp_uid;
+ 	sudo_debug_printf(SUDO_DEBUG_INFO, "%s: PERM_TIMESTAMP: uid: "
+@@ -1080,6 +1135,10 @@ bool
+ restore_perms(void)
+ {
+     struct perm_state *state, *ostate;
++#ifdef __MVS__
++    uid_t prev_ruid;
++    uid_t prev_euid;
++#endif /* __MVS__ */
+     debug_decl(restore_perms, SUDOERS_DEBUG_PERMS);
+ 
+     if (perm_stack_depth < 2) {
+@@ -1117,11 +1176,33 @@ restore_perms(void)
+ 	    goto bad;
+ 	}
+     }
++#ifdef __MVS__
++    /* can't change EUID directly */
++    prev_ruid = getuid();
++    prev_euid = geteuid();
++
++    if (geteuid() == ROOT_UID)
++    {
++        if (setreuid(OID(ruid), ROOT_UID)) {
++            sudo_warn("unable to restore ruid %d -> %d", (int)prev_ruid,
++                (int)OID(ruid));
++            goto bad;
++        }
++    }
++    prev_ruid = getuid();
++    prev_euid = geteuid();
++    if (setreuid(OID(ruid), OID(euid))) {
++       sudo_warn("setreuid() [%d, %d] -> [%d, %d]", (int)prev_ruid,
++            (int)prev_euid, (int)OID(ruid), (int)OID(euid));
++        goto bad;
++    }
++#else /* !__MVS__ */
+     if (setreuid(OID(ruid), OID(euid))) {
+ 	sudo_warn("setreuid() [%d, %d] -> [%d, %d]", (int)state->ruid,
+ 	    (int)state->euid, (int)OID(ruid), (int)OID(euid));
+ 	goto bad;
+     }
++#endif
+     if (setregid(OID(rgid), OID(egid))) {
+ 	sudo_warn("setregid() [%d, %d] -> [%d, %d]", (int)state->rgid,
+ 	    (int)state->egid, (int)OID(rgid), (int)OID(egid));

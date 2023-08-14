@@ -1,0 +1,13 @@
+diff --git a/plugins/group_file/Makefile.in b/plugins/group_file/Makefile.in
+index e387e4d..a514d61 100644
+--- a/plugins/group_file/Makefile.in
++++ b/plugins/group_file/Makefile.in
+@@ -44,7 +44,7 @@ INSTALL_BACKUP = @INSTALL_BACKUP@
+ 
+ # Libraries
+ LT_LIBS = $(top_builddir)/lib/util/libsudo_util.la
+-LIBS = $(LT_LIBS)
++LIBS = $(LT_LIBS) @LIBS@
+ 
+ # C preprocessor flags
+ CPPFLAGS = -I$(incdir) -I$(top_builddir) @CPPFLAGS@

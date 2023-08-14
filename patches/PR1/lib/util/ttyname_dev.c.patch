@@ -1,0 +1,15 @@
+diff --git a/lib/util/ttyname_dev.c b/lib/util/ttyname_dev.c
+index 08b9777..2312854 100644
+--- a/lib/util/ttyname_dev.c
++++ b/lib/util/ttyname_dev.c
+@@ -30,8 +30,10 @@
+ #elif defined(MAJOR_IN_SYSMACROS)
+ # include <sys/sysmacros.h>
+ #else
++#ifndef __MVS__
+ # include <sys/param.h>
+ #endif
++#endif
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>

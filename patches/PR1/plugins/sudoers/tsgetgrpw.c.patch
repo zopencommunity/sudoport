@@ -1,0 +1,35 @@
+diff --git a/plugins/sudoers/tsgetgrpw.c b/plugins/sudoers/tsgetgrpw.c
+index 19fb798..33e8a15 100644
+--- a/plugins/sudoers/tsgetgrpw.c
++++ b/plugins/sudoers/tsgetgrpw.c
+@@ -136,7 +136,9 @@ next_entry:
+     if ((colon = strchr(cp = colon, ':')) == NULL)
+ 	goto next_entry;
+     *colon++ = '\0';
++#ifndef __MVS__
+     pw.pw_passwd = cp;
++#endif
+     if ((colon = strchr(cp = colon, ':')) == NULL)
+ 	goto next_entry;
+     *colon++ = '\0';
+@@ -154,7 +156,10 @@ next_entry:
+     if ((colon = strchr(cp = colon, ':')) == NULL)
+ 	goto next_entry;
+     *colon++ = '\0';
++
++#ifndef __MVS__
+     pw.pw_gecos = cp;
++#endif
+     if ((colon = strchr(cp = colon, ':')) == NULL)
+ 	goto next_entry;
+     *colon++ = '\0';
+@@ -280,7 +285,9 @@ next_entry:
+     if ((colon = strchr(cp = colon, ':')) == NULL)
+ 	goto next_entry;
+     *colon++ = '\0';
++#ifndef __MVS__
+     gr.gr_passwd = cp;
++#endif
+     if ((colon = strchr(cp = colon, ':')) == NULL)
+ 	goto next_entry;
+     *colon++ = '\0';

@@ -1,0 +1,28 @@
+diff --git a/lib/util/regress/mktemp/mktemp_test.c b/lib/util/regress/mktemp/mktemp_test.c
+index 134f89e..28fb68f 100644
+--- a/lib/util/regress/mktemp/mktemp_test.c
++++ b/lib/util/regress/mktemp/mktemp_test.c
+@@ -156,7 +156,9 @@ main(int argc, char *argv[])
+ 	clen = strlen(cwd);
+ 	cwd[clen++] = '/';
+ 	cwd[clen] = '\0';
+-#ifdef MAP_ANON
++#ifdef __MVS__
++	p = malloc(pg * 3);
++#elif defined(MAP_ANON)
+ 	p = mmap(NULL, pg * 3, PROT_READ | PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
+ #else
+ 	i = open("/dev/zero", O_RDWR);
+@@ -164,10 +166,12 @@ main(int argc, char *argv[])
+ 		sudo_fatal("/dev/zero");
+ 	p = mmap(NULL, pg * 3, PROT_READ | PROT_WRITE, MAP_PRIVATE, i, 0);
+ #endif
++#ifndef __MVS__
+ 	if (p == MAP_FAILED)
+ 		sudo_fatal("mmap");
+ 	if (mprotect(p, pg, PROT_NONE) || mprotect(p + pg * 2, pg, PROT_NONE))
+ 		sudo_fatal("mprotect");
++#endif
+ 	p += pg;
+ 
+ 	i = MAX_TEMPLATE_LEN + 1;

@@ -1,0 +1,45 @@
+diff --git a/plugins/sudoers/pwutil.c b/plugins/sudoers/pwutil.c
+index 0dd8968..5a7f5fa 100644
+--- a/plugins/sudoers/pwutil.c
++++ b/plugins/sudoers/pwutil.c
+@@ -363,7 +363,9 @@ sudo_mkpwent(const char *user, uid_t uid, gid_t gid, const char *home,
+     home_len = strlen(home);
+     shell_len = strlen(shell);
+     len = sizeof(*pwitem) + name_len + 1 /* pw_name */ +
++#ifndef __MVS__
+ 	sizeof("*") /* pw_passwd */ + sizeof("") /* pw_gecos */ +
++#endif
+ 	home_len + 1 /* pw_dir */ + shell_len + 1 /* pw_shell */;
+ 
+     for (i = 0; i < 2; i++) {
+@@ -380,11 +382,15 @@ sudo_mkpwent(const char *user, uid_t uid, gid_t gid, const char *home,
+ 	pw->pw_gid = gid;
+ 	pw->pw_name = (char *)(pwitem + 1);
+ 	memcpy(pw->pw_name, user, name_len + 1);
+-	pw->pw_passwd = pw->pw_name + name_len + 1;
+-	memcpy(pw->pw_passwd, "*", 2);
+-	pw->pw_gecos = pw->pw_passwd + 2;
+-	pw->pw_gecos[0] = '\0';
+-	pw->pw_dir = pw->pw_gecos + 1;
++#ifdef __MVS__
++  pw->pw_dir = pw->pw_name + name_len + 1;
++#else /* !__MVS__ */
++  pw->pw_passwd = pw->pw_name + name_len + 1;
++  memcpy(pw->pw_passwd, "*", 2);
++  pw->pw_gecos = pw->pw_passwd + 2;
++  pw->pw_gecos[0] = '\0';
++  pw->pw_dir = pw->pw_gecos + 1;
++#endif /* __MVS__ */
+ 	memcpy(pw->pw_dir, home, home_len + 1);
+ 	pw->pw_shell = pw->pw_dir + home_len + 1;
+ 	memcpy(pw->pw_shell, shell, shell_len + 1);
+@@ -686,7 +692,9 @@ sudo_mkgrent(const char *group, gid_t gid, ...)
+ 	}
+ 	gr = &gritem->gr;
+ 	gr->gr_gid = gid;
++#ifndef __MVS__
+ 	gr->gr_passwd = (char *)"*";
++#endif
+ 	cp = (char *)(gritem + 1);
+ 	gr->gr_mem = (char **)cp;
+ 	cp += sizeof(char *) * nmem;

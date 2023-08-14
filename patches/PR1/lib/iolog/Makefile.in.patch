@@ -1,0 +1,13 @@
+diff --git a/lib/iolog/Makefile.in b/lib/iolog/Makefile.in
+index 61bc058..ab00c6f 100644
+--- a/lib/iolog/Makefile.in
++++ b/lib/iolog/Makefile.in
+@@ -40,7 +40,7 @@ SED = @SED@
+ 
+ # Libraries
+ LT_LIBS = $(top_builddir)/lib/util/libsudo_util.la
+-LIBS = @LIBS@ @ZLIB@ $(LT_LIBS)
++LIBS = @LIBS@ @ZLIB@ $(LT_LIBS) @LIBS@
+ 
+ # C preprocessor flags
+ CPPFLAGS = -I$(incdir) -I$(top_builddir) -I$(srcdir) @CPPFLAGS@

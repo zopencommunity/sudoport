@@ -1,0 +1,33 @@
+diff --git a/plugins/sudoers/check_aliases.c b/plugins/sudoers/check_aliases.c
+index 1b3d030..bd8ee93 100644
+--- a/plugins/sudoers/check_aliases.c
++++ b/plugins/sudoers/check_aliases.c
+@@ -28,6 +28,9 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <errno.h>
++#ifdef __MVS__
++#include <pwd.h>
++#endif
+ 
+ #include "sudoers.h"
+ #include <gram.h>
+@@ -132,6 +135,18 @@ check_alias(struct sudoers_parse_tree *parse_tree,
+ 		alias_warnx(file, line, column, strict, quiet,
+ 		    N_("cycle in %s \"%s\""), alias_type_to_string(type), name);
+ 	    } else {
++#ifdef __MVS__
++    /* In "sudoers" file alias name consist of capital letters, numbers and underscores,
++       but user name in z/OS consist of capital letters too. So by default sudo cannot
++       distinguish the difference between the alias and user name in z/OS and we can
++       get multiple "false" warnings after editing "sudoers" with "visudo":
++       -------------------------------------------------------
++       "User_Alias "ZOS_USER_NAME" referenced but not defined"
++       -------------------------------------------------------
++       This additional condition checks that the possible undefined alias can be just
++       z/OS user name and in such case warning is not shown. */
++    if (getpwnam(name) == NULL) /* No such z/OS user name - show the warning. */
++#endif
+ 		alias_warnx(file, line, column, strict, quiet,
+ 		    N_("%s \"%s\" referenced but not defined"),
+ 		    alias_type_to_string(type), name);
