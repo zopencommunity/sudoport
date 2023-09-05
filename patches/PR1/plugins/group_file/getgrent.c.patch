@@ -1,0 +1,14 @@
+diff --git a/plugins/group_file/getgrent.c b/plugins/group_file/getgrent.c
+index f37fb0e..2323c15 100644
+--- a/plugins/group_file/getgrent.c
++++ b/plugins/group_file/getgrent.c
+@@ -130,7 +130,9 @@ next_entry:
+     if ((colon = strchr(cp = colon, ':')) == NULL)
+ 	goto next_entry;
+     *colon++ = '\0';
++#ifndef __MVS__
+     gr.gr_passwd = cp;
++#endif
+     if ((colon = strchr(cp = colon, ':')) == NULL)
+ 	goto next_entry;
+     *colon++ = '\0';

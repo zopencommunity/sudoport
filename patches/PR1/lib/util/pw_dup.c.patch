@@ -1,0 +1,32 @@
+diff --git a/lib/util/pw_dup.c b/lib/util/pw_dup.c
+index ccd2fbb..c8c47e5 100644
+--- a/lib/util/pw_dup.c
++++ b/lib/util/pw_dup.c
+@@ -66,11 +66,13 @@ sudo_pw_dup(const struct passwd *pw)
+ 	/* Allocate in one big chunk for easy freeing */
+ 	total = sizeof(struct passwd);
+ 	PW_SIZE(pw_name, nsize);
++#ifndef __MVS__
+ 	PW_SIZE(pw_passwd, psize);
+ #ifdef HAVE_LOGIN_CAP_H
+ 	PW_SIZE(pw_class, csize);
+ #endif
+ 	PW_SIZE(pw_gecos, gsize);
++#endif
+ 	PW_SIZE(pw_dir, dsize);
+ 	PW_SIZE(pw_shell, ssize);
+ 
+@@ -86,11 +88,13 @@ sudo_pw_dup(const struct passwd *pw)
+ 	cp += sizeof(struct passwd);
+ 
+ 	PW_COPY(pw_name, nsize);
++#ifndef __MVS__
+ 	PW_COPY(pw_passwd, psize);
+ #ifdef HAVE_LOGIN_CAP_H
+ 	PW_COPY(pw_class, csize);
+ #endif
+ 	PW_COPY(pw_gecos, gsize);
++#endif
+ 	PW_COPY(pw_dir, dsize);
+ 	PW_COPY(pw_shell, ssize);
+ 

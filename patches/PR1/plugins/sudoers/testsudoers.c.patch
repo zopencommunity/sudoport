@@ -1,0 +1,29 @@
+diff --git a/plugins/sudoers/testsudoers.c b/plugins/sudoers/testsudoers.c
+index 3eea349..6e6dd61 100644
+--- a/plugins/sudoers/testsudoers.c
++++ b/plugins/sudoers/testsudoers.c
+@@ -187,6 +187,7 @@ main(int argc, char *argv[])
+     argc -= optind;
+     argv += optind;
+ 
++#ifndef __MVS__
+     if (grfile != NULL || pwfile != NULL) {
+ 	/* Set group/passwd file and init the cache. */
+ 	if (grfile)
+@@ -199,11 +200,16 @@ main(int argc, char *argv[])
+ 	    testsudoers_make_gritem, testsudoers_make_gidlist_item,
+ 	    testsudoers_make_grlist_item);
+     }
++#endif
+ 
+     if (argc < 2) {
+ 	if (!dflag)
+ 	    usage();
++#ifdef __MVS__
++	user_name = argc ? *argv++ : (char *)"BPXROOT";
++#else
+ 	user_name = argc ? *argv++ : (char *)"root";
++#endif
+ 	orig_cmnd = "true";
+ 	argc = 0;
+     } else {

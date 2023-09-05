@@ -1,0 +1,13 @@
+diff --git a/plugins/audit_json/Makefile.in b/plugins/audit_json/Makefile.in
+index 199a60d..0a654ea 100644
+--- a/plugins/audit_json/Makefile.in
++++ b/plugins/audit_json/Makefile.in
+@@ -42,7 +42,7 @@ INSTALL_BACKUP = @INSTALL_BACKUP@
+ 
+ # Libraries
+ LT_LIBS = $(top_builddir)/lib/util/libsudo_util.la
+-LIBS = $(LT_LIBS)
++LIBS = $(LT_LIBS) @LIBS@
+ 
+ # C preprocessor flags
+ CPPFLAGS = -I$(incdir) -I$(top_builddir) @CPPFLAGS@

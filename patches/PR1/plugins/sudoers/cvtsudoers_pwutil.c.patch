@@ -1,0 +1,64 @@
+diff --git a/plugins/sudoers/cvtsudoers_pwutil.c b/plugins/sudoers/cvtsudoers_pwutil.c
+index 6b30d03..201712b 100644
+--- a/plugins/sudoers/cvtsudoers_pwutil.c
++++ b/plugins/sudoers/cvtsudoers_pwutil.c
+@@ -126,7 +126,9 @@ cvtsudoers_make_pwitem(uid_t uid, const char *name)
+     /* Fake up a passwd struct. */
+     memset(&pw, 0, sizeof(pw));
+     pw.pw_name = name ? s->str : uidstr;
++#ifndef __MVS__
+     pw.pw_passwd = (char *)"*";
++#endif
+     pw.pw_uid = uid;
+     pw.pw_gid = (gid_t)-1;
+     pw.pw_shell = (char *)_PATH_BSHELL;
+@@ -135,11 +137,13 @@ cvtsudoers_make_pwitem(uid_t uid, const char *name)
+     /* Allocate in one big chunk for easy freeing. */
+     total = sizeof(*pwitem);
+     FIELD_SIZE(&pw, pw_name, nsize);
++#ifndef __MVS__
+     FIELD_SIZE(&pw, pw_passwd, psize);
++    FIELD_SIZE(&pw, pw_gecos, gsize);
++#endif
+ #ifdef HAVE_LOGIN_CAP_H
+     FIELD_SIZE(&pw, pw_class, csize);
+ #endif
+-    FIELD_SIZE(&pw, pw_gecos, gsize);
+     FIELD_SIZE(&pw, pw_dir, dsize);
+     FIELD_SIZE(&pw, pw_shell, ssize);
+     if (name != NULL)
+@@ -160,11 +164,13 @@ cvtsudoers_make_pwitem(uid_t uid, const char *name)
+     memcpy(newpw, &pw, sizeof(pw));
+     cp = (char *)(pwitem + 1);
+     FIELD_COPY(&pw, newpw, pw_name, nsize);
++#ifndef __MVS__
+     FIELD_COPY(&pw, newpw, pw_passwd, psize);
++    FIELD_COPY(&pw, newpw, pw_gecos, gsize);
++#endif
+ #ifdef HAVE_LOGIN_CAP_H
+     FIELD_COPY(&pw, newpw, pw_class, csize);
+ #endif
+-    FIELD_COPY(&pw, newpw, pw_gecos, gsize);
+     FIELD_COPY(&pw, newpw, pw_dir, dsize);
+     FIELD_COPY(&pw, newpw, pw_shell, ssize);
+ 
+@@ -237,7 +243,9 @@ cvtsudoers_make_gritem(gid_t gid, const char *name)
+     /* Allocate in one big chunk for easy freeing. */
+     total = sizeof(*gritem);
+     FIELD_SIZE(&gr, gr_name, nsize);
++#ifndef __MVS__
+     FIELD_SIZE(&gr, gr_passwd, psize);
++#endif
+     if (!STAILQ_EMPTY(&filters->users)) {
+ 	STAILQ_FOREACH(s, &filters->users, entries) {
+ 	    total += strlen(s->str) + 1;
+@@ -274,7 +282,9 @@ cvtsudoers_make_gritem(gid_t gid, const char *name)
+ 	}
+ 	newgr->gr_mem[nmem] = NULL;
+     }
++#ifndef __MVS__
+     FIELD_COPY(&gr, newgr, gr_passwd, psize);
++#endif
+     FIELD_COPY(&gr, newgr, gr_name, nsize);
+ 
+     /* Set key and datum. */

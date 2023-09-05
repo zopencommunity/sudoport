@@ -1,0 +1,13 @@
+diff --git a/lib/eventlog/Makefile.in b/lib/eventlog/Makefile.in
+index cd713c4..783571f 100644
+--- a/lib/eventlog/Makefile.in
++++ b/lib/eventlog/Makefile.in
+@@ -49,7 +49,7 @@ LTFLAGS = @LT_STATIC@
+ 
+ # Libraries
+ LT_LIBS = $(top_builddir)/lib/util/libsudo_util.la
+-LIBS = $(LT_LIBS)
++LIBS = $(LT_LIBS) @LIBS@
+ 
+ # Address sanitizer flags
+ ASAN_CFLAGS = @ASAN_CFLAGS@

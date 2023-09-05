@@ -1,0 +1,15 @@
+diff --git a/lib/util/str2sig.c b/lib/util/str2sig.c
+index e265ec4..490ae67 100644
+--- a/lib/util/str2sig.c
++++ b/lib/util/str2sig.c
+@@ -38,6 +38,10 @@
+ #include "sudo_util.h"
+ 
+ #if !defined(HAVE_SIGABBREV_NP)
++#ifdef __MVS__
++extern const char *
++sigabbrev_np (int sig);
++#endif
+ # if defined(HAVE_DECL_SYS_SIGNAME) && HAVE_DECL_SYS_SIGNAME == 1
+ #   define sigabbrev_np(_x)	sys_signame[(_x)]
+ # elif defined(HAVE_DECL__SYS_SIGNAME) && HAVE_DECL__SYS_SIGNAME == 1

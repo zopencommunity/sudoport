@@ -1,0 +1,13 @@
+diff --git a/logsrvd/Makefile.in b/logsrvd/Makefile.in
+index 2a1f0d1..374dccd 100644
+--- a/logsrvd/Makefile.in
++++ b/logsrvd/Makefile.in
+@@ -49,7 +49,7 @@ LT_LIBS = $(top_builddir)/lib/iolog/libsudo_iolog.la \
+ 	  $(top_builddir)/lib/eventlog/libsudo_eventlog.la \
+ 	  $(top_builddir)/lib/logsrv/liblogsrv.la \
+ 	  $(top_builddir)/lib/protobuf-c/libprotobuf-c.la
+-LIBS = $(LT_LIBS) @LIBTLS@
++LIBS = $(LT_LIBS) @LIBTLS@ @LIBS@
+ 
+ # C preprocessor defines
+ CPPDEFS = -D_PATH_SUDO_LOGSRVD_CONF=\"$(sysconfdir)/sudo_logsrvd.conf\" \

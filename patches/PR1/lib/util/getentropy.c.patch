@@ -1,0 +1,42 @@
+diff --git a/lib/util/getentropy.c b/lib/util/getentropy.c
+index dc5c91c..ada798b 100644
+--- a/lib/util/getentropy.c
++++ b/lib/util/getentropy.c
+@@ -29,7 +29,9 @@
+ 
+ #ifndef HAVE_GETENTROPY
+ 
++#ifndef __MVS__
+ #include <sys/param.h>
++#endif
+ #include <sys/mman.h>
+ #include <sys/resource.h>
+ #include <sys/socket.h>
+@@ -118,7 +120,14 @@ static int getentropy_phdr(struct dl_phdr_info *info, size_t size, void *data);
+ static void *
+ mmap_anon(void *addr, size_t len, int prot, int flags, off_t offset)
+ {
+-#ifdef MAP_ANON
++#if defined(__MVS__)
++  /*TODO: z/OS does not support anonymous mmap yet */
++  addr = malloc(len);
++  if (addr == NULL)
++    return MAP_FAILED;
++  memset(addr, 0, len);
++  return addr;
++#elif defined(MAP_ANON)
+ 	return mmap(addr, len, prot, flags | MAP_ANON, -1, offset);
+ #else
+ 	int fd;
+@@ -543,7 +552,11 @@ getentropy_fallback(void *buf, size_t len)
+ 
+ 				for (m = 0; m < sizeof mm/sizeof(mm[0]); m++) {
+ 					if (mm[m].p != MAP_FAILED)
++#ifdef __MVS__
++						free(mm[m].p);
++#else
+ 						munmap(mm[m].p, mm[m].npg * pgs);
++#endif
+ 					mm[m].p = MAP_FAILED;
+ 				}
+ 

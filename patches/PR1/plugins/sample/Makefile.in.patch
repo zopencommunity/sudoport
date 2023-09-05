@@ -1,0 +1,13 @@
+diff --git a/plugins/sample/Makefile.in b/plugins/sample/Makefile.in
+index e0a814c..9937ffd 100644
+--- a/plugins/sample/Makefile.in
++++ b/plugins/sample/Makefile.in
+@@ -43,7 +43,7 @@ INSTALL_OWNER = -o $(install_uid) -g $(install_gid)
+ INSTALL_BACKUP = @INSTALL_BACKUP@
+ 
+ # Libraries
+-LIBS = $(top_builddir)/lib/util/libsudo_util.la
++LIBS = $(top_builddir)/lib/util/libsudo_util.la @LIBS@
+ 
+ # C preprocessor flags
+ CPPFLAGS = -I$(incdir) -I$(top_builddir) @CPPFLAGS@

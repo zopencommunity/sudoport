@@ -1,0 +1,15 @@
+diff --git a/src/net_ifs.c b/src/net_ifs.c
+index 68c2145..3132279 100644
+--- a/src/net_ifs.c
++++ b/src/net_ifs.c
+@@ -60,8 +60,10 @@ struct rtentry;
+ #endif /* NEED_RESOLV_H */
+ #include <net/if.h>
+ #ifdef HAVE_GETIFADDRS
++#ifndef __MVS__
+ # include <ifaddrs.h>
+ #endif
++#endif
+ 
+ #define NEED_INET_NTOP		/* to expose sudo_inet_ntop in sudo_compat.h */
+ 
