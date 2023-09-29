@@ -62,7 +62,7 @@ cat <<'EOF'
  echo "cd /usr/sbin"
  echo "chmod u+s \$SBIN_SUDO"
  echo "Review the \$SUDO_INSTALL_LOCAL/etc/sudoers file."
- echo "Use sudovi to create your own /etc/sudoers file."
+ echo "Use visudo to create your own /etc/sudoers file."
  echo "================================================================================"
 EOF
 }
