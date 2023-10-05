@@ -44,17 +44,26 @@ zopen_post_install()
 zopen_append_to_setup()
 {
 cat <<EOF
- if [ "\$(id -u)" -eq 0 ]; then
-    echo "Adding sticky bit to binaries"
-    chown 0:0 \$SUDO_HOME/*bin/*
-    chmod u+s \$SUDO_HOME/*bin/*
- else
-    echo "WARNING: Either run the setup.sh script as root or run the following commands with elevated privileges:"
-    echo "chown 0:0 \$SUDO_HOME/*bin/*"
-    echo "chmod u+s \$SUDO_HOME/*bin/*"
- fi 
- echo "An example sudoers is provided in \$SUDO_HOME/etc/sudoers"
- echo "An example sudo.conf is provided in \$SUDO_HOME/etc/sudo.conf"
+ echo "================================================================================"
+ echo "IMPORTANT NOTE: Installation of sudo is NOT COMPLETE.                           "
+ echo "For details on sudo, see: https://www.sudo.ws/releases/stable/#${SUDO_VERSION}  "
+ echo "To finish installing sudo, run the following commands with elevated privileges: "
+ echo "BIN_SUDO='cvtsudoers sudo sudoedit sudoreplay'"
+ echo "SBIN_SUDO='sudo_logsrvd sudo_sendlog visudo'"
+ echo "SUDO_INSTALL_LOCAL=\$SUDO_HOME"
+EOF
+cat <<'EOF'
+ echo "cd \$SUDO_INSTALL_LOCAL/bin"
+ echo "cp \$BIN_SUDO /usr/bin/"
+ echo "cd \$SUDO_INSTALL_LOCAL/sbin"
+ echo "cp \$SBIN_SUDO /usr/sbin/"
+ echo "cd /usr/bin"
+ echo "chown 0:0 \$BIN_SUDO"
+ echo "cd /usr/sbin"
+ echo "chmod u+s \$SBIN_SUDO"
+ echo "Review the \$SUDO_INSTALL_LOCAL/etc/sudoers file."
+ echo "Use visudo to create your own /etc/sudoers file."
+ echo "================================================================================"
 EOF
 }
 
