@@ -1,3 +1,5 @@
+[![Automatic version updates](https://github.com/ZOSOpenTools/sudoport/actions/workflows/bump.yml/badge.svg)](https://github.com/ZOSOpenTools/sudoport/actions/workflows/bump.yml)
+
 # Sudo on z/OS - Readme
 
 ## Introduction
