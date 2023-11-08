@@ -1,11 +1,14 @@
-export ZOPEN_GIT_URL="https://github.com/sudo-project/sudo.git"
-export ZOPEN_GIT_DEPS="make coreutils zoslib openssl zlib gawk"
+# bump: sudo-version /SUDO_VERSION="(.*)"/ https://www.sudo.ws/getting/source/|re:/sudo-([\d.]+p?\d?).tar.gz"/$1/
 SUDO_VERSION="1.9.13p3"
-export ZOPEN_TARBALL_URL="https://www.sudo.ws/dist/sudo-$SUDO_VERSION.tar.gz"
-export ZOPEN_TARBALL_DEPS="make coreutils zoslib openssl zlib gawk"
+
+export ZOPEN_BUILD_LINE="STABLE"
+export ZOPEN_DEV_URL="https://github.com/sudo-project/sudo.git"
+export ZOPEN_DEV_DEPS="make coreutils zoslib openssl zlib gawk"
+export ZOPEN_STABLE_URL="https://www.sudo.ws/dist/sudo-$SUDO_VERSION.tar.gz"
+export ZOPEN_STABLE_DEPS="make coreutils zoslib openssl zlib gawk"
+
 #TODO: add zlib, openssl
 export ZOPEN_EXTRA_CONFIGURE_OPTS="--without-interfaces --with-runas-default=BPXROOT"
-export ZOPEN_TYPE="TARBALL"
 export ZOPEN_MAKE_MINIMAL="yes"
 export ZOPEN_MAKE_OPTS="-j\$ZOPEN_NUM_JOBS"
 export ZOPEN_CHECK_MINIMAL="yes"
@@ -69,5 +72,5 @@ EOF
 
 zopen_get_version()
 {
-  echo "$SUDO_VERSION"
+  echo "$SUDO_VERSION" | cut -d 'p' -f 1
 }
