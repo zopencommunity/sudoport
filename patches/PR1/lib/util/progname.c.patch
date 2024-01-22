@@ -1,0 +1,13 @@
+diff --git a/lib/util/progname.c b/lib/util/progname.c
+index a5f93b2..9b45e9d 100644
+--- a/lib/util/progname.c
++++ b/lib/util/progname.c
+@@ -34,7 +34,7 @@
+  * Assumes __progname[] is present if we have getprogname(3).
+  */
+ #ifndef HAVE_SETPROGNAME
+-# if defined(HAVE_GETPROGNAME) || defined(HAVE___PROGNAME)
++# if (defined(HAVE_GETPROGNAME) || defined( HAVE___PROGNAME)) && !defined(__MVS__)
+ extern const char *__progname;
+ # else
+ static const char *__progname = "";
