@@ -1,5 +1,5 @@
 diff --git a/plugins/sudoers/set_perms.c b/plugins/sudoers/set_perms.c
-index 77ce395..f0c6926 100644
+index 77ce395..b9589a8 100644
 --- a/plugins/sudoers/set_perms.c
 +++ b/plugins/sudoers/set_perms.c
 @@ -939,6 +939,20 @@ set_perms(int perm)
@@ -72,7 +72,32 @@ index 77ce395..f0c6926 100644
  	break;
  
      case PERM_SUDOERS:
-@@ -1052,6 +1094,19 @@ set_perms(int perm)
+@@ -1032,8 +1074,23 @@ set_perms(int perm)
+ 	 * we use a non-zero uid in order to avoid NFS lossage.
+ 	 * Using uid 1 is a bit bogus but should work on all OS's.
+ 	 */
+-	if (sudoers_uid == ROOT_UID && (sudoers_mode & S_IRGRP))
++	if (sudoers_uid == ROOT_UID && (sudoers_mode & S_IRGRP)) {
++#ifdef __MVS__
++      /* uid 1 may not exist on z/OS, find the first non-zero uid */
++      struct passwd *pwd;
++      state->euid = -1;
++      setpwent();
++      while ((pwd = getpwent()) != NULL) {
++          if (pwd->pw_uid > 0) {
++              state->euid = pwd->pw_uid;
++              break;
++          }
++      }
++      endpwent();
++#else
+ 	    state->euid = 1;
++#endif
++  }
+ 	else
+ 	    state->euid = sudoers_uid;
+ 	sudo_debug_printf(SUDO_DEBUG_INFO, "%s: PERM_SUDOERS: uid: "
+@@ -1052,6 +1109,19 @@ set_perms(int perm)
  	sudo_gidlist_addref(state->gidlist);
  	state->rgid = ostate->rgid;
  	state->egid = ostate->egid;
@@ -92,7 +117,7 @@ index 77ce395..f0c6926 100644
  	state->ruid = ROOT_UID;
  	state->euid = timestamp_uid;
  	sudo_debug_printf(SUDO_DEBUG_INFO, "%s: PERM_TIMESTAMP: uid: "
-@@ -1080,6 +1135,10 @@ bool
+@@ -1080,6 +1150,10 @@ bool
  restore_perms(void)
  {
      struct perm_state *state, *ostate;
@@ -103,7 +128,7 @@ index 77ce395..f0c6926 100644
      debug_decl(restore_perms, SUDOERS_DEBUG_PERMS);
  
      if (perm_stack_depth < 2) {
-@@ -1117,11 +1176,33 @@ restore_perms(void)
+@@ -1117,11 +1191,33 @@ restore_perms(void)
  	    goto bad;
  	}
      }
