@@ -1,5 +1,5 @@
 diff --git a/plugins/audit_json/Makefile.in b/plugins/audit_json/Makefile.in
-index 199a60d..0a654ea 100644
+index e885a39..f4f77b2 100644
 --- a/plugins/audit_json/Makefile.in
 +++ b/plugins/audit_json/Makefile.in
 @@ -42,7 +42,7 @@ INSTALL_BACKUP = @INSTALL_BACKUP@

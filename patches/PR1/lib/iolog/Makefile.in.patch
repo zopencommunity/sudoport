@@ -1,11 +1,11 @@
 diff --git a/lib/iolog/Makefile.in b/lib/iolog/Makefile.in
-index 61bc058..ab00c6f 100644
+index 75dc534..e75e85f 100644
 --- a/lib/iolog/Makefile.in
 +++ b/lib/iolog/Makefile.in
-@@ -40,7 +40,7 @@ SED = @SED@
- 
- # Libraries
- LT_LIBS = $(top_builddir)/lib/util/libsudo_util.la
+@@ -43,7 +43,7 @@ LIBEVENTLOG = $(top_builddir)/lib/eventlog/libsudo_eventlog.la
+ LIBFUZZSTUB = $(top_builddir)/lib/fuzzstub/libsudo_fuzzstub.la
+ LIBUTIL = $(top_builddir)/lib/util/libsudo_util.la
+ LT_LIBS = $(LIBUTIL)
 -LIBS = @LIBS@ @ZLIB@ $(LT_LIBS)
 +LIBS = @LIBS@ @ZLIB@ $(LT_LIBS) @LIBS@
  

@@ -1,5 +1,5 @@
 diff --git a/plugins/sudoers/cvtsudoers_pwutil.c b/plugins/sudoers/cvtsudoers_pwutil.c
-index 6b30d03..201712b 100644
+index 35ccbdd..847d43b 100644
 --- a/plugins/sudoers/cvtsudoers_pwutil.c
 +++ b/plugins/sudoers/cvtsudoers_pwutil.c
 @@ -126,7 +126,9 @@ cvtsudoers_make_pwitem(uid_t uid, const char *name)

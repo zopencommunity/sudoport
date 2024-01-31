@@ -1,5 +1,5 @@
 diff --git a/plugins/sample_approval/Makefile.in b/plugins/sample_approval/Makefile.in
-index fb3b435..5cff31a 100644
+index 3ffe465..d9f3b51 100644
 --- a/plugins/sample_approval/Makefile.in
 +++ b/plugins/sample_approval/Makefile.in
 @@ -42,7 +42,7 @@ INSTALL_BACKUP = @INSTALL_BACKUP@

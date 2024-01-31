@@ -1,19 +1,19 @@
 diff --git a/plugins/sudoers/defaults.c b/plugins/sudoers/defaults.c
-index e90be1f..9365744 100644
+index 34c5d1d..f02d51b 100644
 --- a/plugins/sudoers/defaults.c
 +++ b/plugins/sudoers/defaults.c
-@@ -42,6 +42,9 @@
- #include "sudo_eventlog.h"
- #include "sudo_iolog.h"
- #include <gram.h>
+@@ -37,6 +37,9 @@
+ #include <errno.h>
+ #include <limits.h>
+ #include <syslog.h>
 +#ifdef __MVS__
 +#include <pwd.h>
 +#endif
  
- static struct early_default early_defaults[] = {
-     { I_IGNORE_UNKNOWN_DEFAULTS },
-@@ -605,8 +608,19 @@ init_defaults(void)
- 	goto oom;
+ #include <sudoers.h>
+ #include <sudo_eventlog.h>
+@@ -636,8 +639,19 @@ init_defaults(void)
+ #endif
      if ((def_passprompt = strdup(_(PASSPROMPT))) == NULL)
  	goto oom;
 +#ifdef __MVS__

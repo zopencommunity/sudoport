@@ -1,8 +1,8 @@
 diff --git a/plugins/sudoers/pwutil_impl.c b/plugins/sudoers/pwutil_impl.c
-index 199cb5e..e5f2d48 100644
+index a2e3394..ba59f80 100644
 --- a/plugins/sudoers/pwutil_impl.c
 +++ b/plugins/sudoers/pwutil_impl.c
-@@ -102,11 +102,13 @@ sudo_make_pwitem(uid_t uid, const char *name)
+@@ -116,11 +116,13 @@ PREFIX(make_pwitem)(uid_t uid, const char *name)
      /* Allocate in one big chunk for easy freeing. */
      total = sizeof(*pwitem);
      FIELD_SIZE(pw, pw_name, nsize);
@@ -16,7 +16,7 @@ index 199cb5e..e5f2d48 100644
      FIELD_SIZE(pw, pw_dir, dsize);
      /* Treat shell specially since we expand "" -> _PATH_BSHELL */
      ssize = strlen(pw_shell) + 1;
-@@ -129,11 +131,13 @@ sudo_make_pwitem(uid_t uid, const char *name)
+@@ -143,11 +145,13 @@ PREFIX(make_pwitem)(uid_t uid, const char *name)
      memcpy(newpw, pw, sizeof(*pw));
      cp = (char *)(pwitem + 1);
      FIELD_COPY(pw, newpw, pw_name, nsize);
@@ -30,7 +30,7 @@ index 199cb5e..e5f2d48 100644
      FIELD_COPY(pw, newpw, pw_dir, dsize);
      /* Treat shell specially since we expand "" -> _PATH_BSHELL */
      memcpy(cp, pw_shell, ssize);
-@@ -179,7 +183,9 @@ sudo_make_gritem(gid_t gid, const char *name)
+@@ -193,7 +197,9 @@ PREFIX(make_gritem)(gid_t gid, const char *name)
      /* Allocate in one big chunk for easy freeing. */
      total = sizeof(*gritem);
      FIELD_SIZE(gr, gr_name, nsize);
@@ -40,7 +40,7 @@ index 199cb5e..e5f2d48 100644
      if (gr->gr_mem) {
  	for (nmem = 0; gr->gr_mem[nmem] != NULL; nmem++)
  	    total += strlen(gr->gr_mem[nmem]) + 1;
-@@ -214,7 +220,9 @@ sudo_make_gritem(gid_t gid, const char *name)
+@@ -228,7 +234,9 @@ PREFIX(make_gritem)(gid_t gid, const char *name)
  	}
  	newgr->gr_mem[nmem] = NULL;
      }

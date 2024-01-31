@@ -1,5 +1,5 @@
 diff --git a/plugins/python/Makefile.in b/plugins/python/Makefile.in
-index e79f570..d261aa5 100644
+index 423aed4..7e20587 100644
 --- a/plugins/python/Makefile.in
 +++ b/plugins/python/Makefile.in
 @@ -47,7 +47,7 @@ INSTALL_BACKUP = @INSTALL_BACKUP@

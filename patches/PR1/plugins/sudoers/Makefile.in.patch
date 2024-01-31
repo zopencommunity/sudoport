@@ -1,5 +1,5 @@
 diff --git a/plugins/sudoers/Makefile.in b/plugins/sudoers/Makefile.in
-index 6e7c97c..044533a 100644
+index 71218db..f0f5498 100644
 --- a/plugins/sudoers/Makefile.in
 +++ b/plugins/sudoers/Makefile.in
 @@ -62,10 +62,10 @@ LIBEVENTLOG = $(top_builddir)/lib/eventlog/libsudo_eventlog.la
@@ -15,7 +15,7 @@ index 6e7c97c..044533a 100644
  VISUDO_LIBS = $(NET_LIBS)
  CVTSUDOERS_LIBS = $(NET_LIBS)
  TESTSUDOERS_LIBS = $(NET_LIBS)
-@@ -389,7 +389,7 @@ check_gentime: $(CHECK_GENTIME_OBJS) $(LIBUTIL)
+@@ -397,7 +397,7 @@ check_gentime: $(CHECK_GENTIME_OBJS) $(LIBUTIL)
  	$(LIBTOOL) $(LTFLAGS) --mode=link $(CC) -o $@ $(CHECK_GENTIME_OBJS) $(LDFLAGS) $(ASAN_LDFLAGS) $(PIE_LDFLAGS) $(HARDENING_LDFLAGS) $(LIBS)
  
  check_iolog_plugin: $(CHECK_IOLOG_PLUGIN_OBJS) $(LIBUTIL) $(LIBIOLOG) $(LIBLOGSRV)
@@ -24,7 +24,7 @@ index 6e7c97c..044533a 100644
  
  check_serialize_list: $(CHECK_SERIALIZE_LIST_OBJS) $(LIBUTIL)
  	$(LIBTOOL) $(LTFLAGS) --mode=link $(CC) -o $@ $(CHECK_SERIALIZE_LIST_OBJS) $(LDFLAGS) $(ASAN_LDFLAGS) $(PIE_LDFLAGS) $(HARDENING_LDFLAGS) $(LIBS)
-@@ -405,13 +405,13 @@ check_symbols: $(CHECK_SYMBOLS_OBJS) $(LIBUTIL)
+@@ -413,13 +413,13 @@ check_symbols: $(CHECK_SYMBOLS_OBJS) $(LIBUTIL)
  	$(LIBTOOL) $(LTFLAGS) --mode=link $(CC) -o $@ $(CHECK_SYMBOLS_OBJS) $(CHECK_SYMBOLS_LDFLAGS) $(LDFLAGS) $(ASAN_LDFLAGS) $(PIE_LDFLAGS) $(HARDENING_LDFLAGS) $(LIBS) @SUDO_LIBS@
  
  fuzz_policy: $(FUZZ_POLICY_OBJS) libparsesudoers.la $(LIBEVENTLOG) $(LIBUTIL) $(LIBFUZZSTUB)

@@ -1,8 +1,8 @@
 diff --git a/plugins/sudoers/pwutil.c b/plugins/sudoers/pwutil.c
-index 0dd8968..5a7f5fa 100644
+index 79033a6..431aabd 100644
 --- a/plugins/sudoers/pwutil.c
 +++ b/plugins/sudoers/pwutil.c
-@@ -363,7 +363,9 @@ sudo_mkpwent(const char *user, uid_t uid, gid_t gid, const char *home,
+@@ -383,7 +383,9 @@ sudo_mkpwent(const char *user, uid_t uid, gid_t gid, const char *home,
      home_len = strlen(home);
      shell_len = strlen(shell);
      len = sizeof(*pwitem) + name_len + 1 /* pw_name */ +
@@ -12,7 +12,7 @@ index 0dd8968..5a7f5fa 100644
  	home_len + 1 /* pw_dir */ + shell_len + 1 /* pw_shell */;
  
      for (i = 0; i < 2; i++) {
-@@ -380,11 +382,15 @@ sudo_mkpwent(const char *user, uid_t uid, gid_t gid, const char *home,
+@@ -400,11 +402,15 @@ sudo_mkpwent(const char *user, uid_t uid, gid_t gid, const char *home,
  	pw->pw_gid = gid;
  	pw->pw_name = (char *)(pwitem + 1);
  	memcpy(pw->pw_name, user, name_len + 1);
@@ -33,7 +33,7 @@ index 0dd8968..5a7f5fa 100644
  	memcpy(pw->pw_dir, home, home_len + 1);
  	pw->pw_shell = pw->pw_dir + home_len + 1;
  	memcpy(pw->pw_shell, shell, shell_len + 1);
-@@ -686,7 +692,9 @@ sudo_mkgrent(const char *group, gid_t gid, ...)
+@@ -706,7 +712,9 @@ sudo_mkgrent(const char *group, gid_t gid, ...)
  	}
  	gr = &gritem->gr;
  	gr->gr_gid = gid;

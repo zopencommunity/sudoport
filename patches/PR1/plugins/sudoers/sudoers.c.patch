@@ -1,16 +1,16 @@
 diff --git a/plugins/sudoers/sudoers.c b/plugins/sudoers/sudoers.c
-index db65986..1848bc1 100644
+index 6778e4e..7a4de6a 100644
 --- a/plugins/sudoers/sudoers.c
 +++ b/plugins/sudoers/sudoers.c
-@@ -622,7 +622,11 @@ sudoers_policy_main(int argc, char * const argv[], int pwflag, char *env_add[],
-     /* If run as root with SUDO_USER set, set sudo_user.pw to that user. */
+@@ -514,7 +514,11 @@ sudoers_check_common(struct sudoers_context *ctx, int pwflag)
+     /* If run as root with SUDO_USER set, set ctx->user.pw to that user. */
      /* XXX - causes confusion when root is not listed in sudoers */
-     if (ISSET(sudo_mode, MODE_RUN|MODE_EDIT) && prev_user != NULL) {
--	if (user_uid == 0 && strcmp(prev_user, "root") != 0) {
+     if (ISSET(ctx->mode, MODE_RUN|MODE_EDIT) && prev_user != NULL) {
+-	if (ctx->user.uid == 0 && strcmp(prev_user, "root") != 0) {
 +#ifdef __MVS__
-+       if (user_uid == 0 && strcmp(prev_user, "BPXROOT") != 0) {
++       if (ctx->user_uid == 0 && strcmp(prev_user, "BPXROOT") != 0) {
 +#else /* !__MVS__ */
-+       if (user_uid == 0 && strcmp(prev_user, "root") != 0) {
++       if (ctx->user_uid == 0 && strcmp(prev_user, "root") != 0) {
 +#endif /* __MVS__ */
  	    struct passwd *pw;
  

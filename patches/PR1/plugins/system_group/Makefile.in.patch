@@ -1,5 +1,5 @@
 diff --git a/plugins/system_group/Makefile.in b/plugins/system_group/Makefile.in
-index da93c1d..f49e517 100644
+index 9bdebde..218ec46 100644
 --- a/plugins/system_group/Makefile.in
 +++ b/plugins/system_group/Makefile.in
 @@ -44,7 +44,7 @@ INSTALL_BACKUP = @INSTALL_BACKUP@

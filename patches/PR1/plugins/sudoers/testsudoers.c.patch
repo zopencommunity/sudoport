@@ -1,29 +1,32 @@
 diff --git a/plugins/sudoers/testsudoers.c b/plugins/sudoers/testsudoers.c
-index 3eea349..6e6dd61 100644
+index 2ebd7b4..6d971cd 100644
 --- a/plugins/sudoers/testsudoers.c
 +++ b/plugins/sudoers/testsudoers.c
-@@ -187,6 +187,7 @@ main(int argc, char *argv[])
+@@ -228,6 +228,7 @@ main(int argc, char *argv[])
      argc -= optind;
      argv += optind;
  
 +#ifndef __MVS__
-     if (grfile != NULL || pwfile != NULL) {
- 	/* Set group/passwd file and init the cache. */
+     if (grfile != NULL || pwfile != NULL || shells != NULL) {
+ 	/* Set group/passwd/shells file and init the cache. */
  	if (grfile)
-@@ -199,11 +200,16 @@ main(int argc, char *argv[])
- 	    testsudoers_make_gritem, testsudoers_make_gidlist_item,
- 	    testsudoers_make_grlist_item);
-     }
+@@ -236,6 +237,7 @@ main(int argc, char *argv[])
+ 	    testsudoers_setpwfile(pwfile);
+ 	if (shells)
+ 	    testsudoers_setshellfile(shells);
 +#endif
  
-     if (argc < 2) {
- 	if (!dflag)
+ 	/* Use custom passwd/group backend. */
+ 	sudo_pwutil_set_backend(testsudoers_make_pwitem,
+@@ -250,7 +252,11 @@ main(int argc, char *argv[])
+ 	} else if (pwflag == 0) {
  	    usage();
+ 	}
 +#ifdef __MVS__
-+	user_name = argc ? *argv++ : (char *)"BPXROOT";
++	test_ctx.user.name = strdup(argc ? *argv++ : "BPXROOT");
 +#else
- 	user_name = argc ? *argv++ : (char *)"root";
+ 	test_ctx.user.name = strdup(argc ? *argv++ : "root");
 +#endif
- 	orig_cmnd = "true";
- 	argc = 0;
-     } else {
+ 	if (test_ctx.user.name == NULL) {
+ 	    sudo_fatalx(U_("%s: %s"), __func__,
+ 		U_("unable to allocate memory"));
