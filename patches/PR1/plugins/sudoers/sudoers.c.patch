@@ -1,5 +1,5 @@
 diff --git a/plugins/sudoers/sudoers.c b/plugins/sudoers/sudoers.c
-index 6778e4e..7a4de6a 100644
+index 6778e4e..12717b0 100644
 --- a/plugins/sudoers/sudoers.c
 +++ b/plugins/sudoers/sudoers.c
 @@ -514,7 +514,11 @@ sudoers_check_common(struct sudoers_context *ctx, int pwflag)
@@ -8,9 +8,9 @@ index 6778e4e..7a4de6a 100644
      if (ISSET(ctx->mode, MODE_RUN|MODE_EDIT) && prev_user != NULL) {
 -	if (ctx->user.uid == 0 && strcmp(prev_user, "root") != 0) {
 +#ifdef __MVS__
-+       if (ctx->user_uid == 0 && strcmp(prev_user, "BPXROOT") != 0) {
++       if (ctx->user.uid == 0 && strcmp(prev_user, "BPXROOT") != 0) {
 +#else /* !__MVS__ */
-+       if (ctx->user_uid == 0 && strcmp(prev_user, "root") != 0) {
++       if (ctx->user.uid == 0 && strcmp(prev_user, "root") != 0) {
 +#endif /* __MVS__ */
  	    struct passwd *pw;
  

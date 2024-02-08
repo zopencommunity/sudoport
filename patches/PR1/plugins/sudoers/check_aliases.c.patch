@@ -1,5 +1,5 @@
 diff --git a/plugins/sudoers/check_aliases.c b/plugins/sudoers/check_aliases.c
-index 8719698..992590b 100644
+index 8719698..8e97049 100644
 --- a/plugins/sudoers/check_aliases.c
 +++ b/plugins/sudoers/check_aliases.c
 @@ -28,6 +28,9 @@
@@ -12,10 +12,10 @@ index 8719698..992590b 100644
  
  #include <sudoers.h>
  #include <gram.h>
-@@ -91,6 +94,18 @@ check_alias(struct sudoers_parse_tree *parse_tree,
- 	    if (errno == ELOOP) {
+@@ -92,6 +95,18 @@ check_alias(struct sudoers_parse_tree *parse_tree,
  		parser_warnx(parse_tree->ctx, file, line, column, strict, quiet,
  		    N_("cycle in %s \"%s\""), alias_type_to_string(type), name);
+ 	    } else {
 +#ifdef __MVS__
 +    /* In "sudoers" file alias name consist of capital letters, numbers and underscores,
 +       but user name in z/OS consist of capital letters too. So by default sudo cannot
@@ -28,6 +28,6 @@ index 8719698..992590b 100644
 +       z/OS user name and in such case warning is not shown. */
 +    if (getpwnam(name) == NULL) /* No such z/OS user name - show the warning. */
 +#endif
- 	    } else {
  		parser_warnx(parse_tree->ctx, file, line, column, strict, quiet,
  		    N_("%s \"%s\" referenced but not defined"),
+ 		    alias_type_to_string(type), name);
