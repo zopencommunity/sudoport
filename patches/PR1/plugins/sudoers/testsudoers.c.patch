@@ -1,24 +1,8 @@
 diff --git a/plugins/sudoers/testsudoers.c b/plugins/sudoers/testsudoers.c
-index 2ebd7b4..6d971cd 100644
+index 2ebd7b4..396abb8 100644
 --- a/plugins/sudoers/testsudoers.c
 +++ b/plugins/sudoers/testsudoers.c
-@@ -228,6 +228,7 @@ main(int argc, char *argv[])
-     argc -= optind;
-     argv += optind;
- 
-+#ifndef __MVS__
-     if (grfile != NULL || pwfile != NULL || shells != NULL) {
- 	/* Set group/passwd/shells file and init the cache. */
- 	if (grfile)
-@@ -236,6 +237,7 @@ main(int argc, char *argv[])
- 	    testsudoers_setpwfile(pwfile);
- 	if (shells)
- 	    testsudoers_setshellfile(shells);
-+#endif
- 
- 	/* Use custom passwd/group backend. */
- 	sudo_pwutil_set_backend(testsudoers_make_pwitem,
-@@ -250,7 +252,11 @@ main(int argc, char *argv[])
+@@ -250,7 +250,11 @@ main(int argc, char *argv[])
  	} else if (pwflag == 0) {
  	    usage();
  	}

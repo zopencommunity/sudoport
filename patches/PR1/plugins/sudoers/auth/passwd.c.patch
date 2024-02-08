@@ -1,5 +1,5 @@
 diff --git a/plugins/sudoers/auth/passwd.c b/plugins/sudoers/auth/passwd.c
-index 0b1fcde..28adf4a 100644
+index 0b1fcde..5d95a22 100644
 --- a/plugins/sudoers/auth/passwd.c
 +++ b/plugins/sudoers/auth/passwd.c
 @@ -21,8 +21,8 @@
@@ -21,7 +21,7 @@ index 0b1fcde..28adf4a 100644
  
  #include <sudoers.h>
  #include "sudo_auth.h"
-@@ -57,9 +58,66 @@ sudo_passwd_init(const struct sudoers_context *ctx, struct passwd *pw,
+@@ -57,9 +58,62 @@ sudo_passwd_init(const struct sudoers_context *ctx, struct passwd *pw,
      sudo_setspent();
      auth->data = sudo_getepw(pw);
      sudo_endspent();
@@ -47,7 +47,7 @@ index 0b1fcde..28adf4a 100644
 +    case EINVAL:
 +      /* If no password, then give surrogate error message.*/
 +      if (NULL == pass) {
-+        log_warningx(ctx, 0, N_("User is not a surrogate of \"%s\"\n"), pw->pw_name)
++        log_warningx(ctx, 0, N_("User is not a surrogate of \"%s\"\n"), pw->pw_name);
 +      } else {
 +        /* Depending on release, PASS_MAX may support a larger password
 +         length than getpass() allows.  This means getpass() can
@@ -56,7 +56,7 @@ index 0b1fcde..28adf4a 100644
 +         This means we can get length errors from __passwd().
 +         Send a message based on whether password was given. */
 +        if (*pass == '\0') {
-+          log_warningx(ctx, 0, N_("No password entered\n"))
++          log_warningx(ctx, 0, N_("No password entered\n"));
 +        } else {
 +          log_warningx(ctx, 0, N_("Invalid password entered: reason code = %08X\n"), __errno2());
 +        }
@@ -69,10 +69,6 @@ index 0b1fcde..28adf4a 100644
 +      log_warningx(ctx, 0, N_("Password expired\n"));
 +      break;
 +    case ESRCH:
-+      log_warning(0,
-+                  "User ID \"%s\" does not exist, or "
-+                  "the RACF profile does not contain an OMVS segment\n",
-+                  pw->pw_name);
 +      log_warningx(ctx, 0, 
 +                N_("User ID \"%s\" does not exist, or "
 +                   "the RACF profile does not contain an OMVS segment\n"),
@@ -89,7 +85,7 @@ index 0b1fcde..28adf4a 100644
  #ifdef HAVE_CRYPT
  int
  sudo_passwd_verify(const struct sudoers_context *ctx, struct passwd *pw,
-@@ -123,6 +181,7 @@ sudo_passwd_verify(const struct sudoers_context *ctx, struct passwd *pw,
+@@ -123,6 +177,7 @@ sudo_passwd_verify(const struct sudoers_context *ctx, struct passwd *pw,
      debug_return_int(ret);
  }
  #endif
