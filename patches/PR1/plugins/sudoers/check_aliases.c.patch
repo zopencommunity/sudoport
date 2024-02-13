@@ -1,5 +1,5 @@
 diff --git a/plugins/sudoers/check_aliases.c b/plugins/sudoers/check_aliases.c
-index 1b3d030..bd8ee93 100644
+index 8719698..8e97049 100644
 --- a/plugins/sudoers/check_aliases.c
 +++ b/plugins/sudoers/check_aliases.c
 @@ -28,6 +28,9 @@
@@ -10,10 +10,10 @@ index 1b3d030..bd8ee93 100644
 +#include <pwd.h>
 +#endif
  
- #include "sudoers.h"
+ #include <sudoers.h>
  #include <gram.h>
-@@ -132,6 +135,18 @@ check_alias(struct sudoers_parse_tree *parse_tree,
- 		alias_warnx(file, line, column, strict, quiet,
+@@ -92,6 +95,18 @@ check_alias(struct sudoers_parse_tree *parse_tree,
+ 		parser_warnx(parse_tree->ctx, file, line, column, strict, quiet,
  		    N_("cycle in %s \"%s\""), alias_type_to_string(type), name);
  	    } else {
 +#ifdef __MVS__
@@ -28,6 +28,6 @@ index 1b3d030..bd8ee93 100644
 +       z/OS user name and in such case warning is not shown. */
 +    if (getpwnam(name) == NULL) /* No such z/OS user name - show the warning. */
 +#endif
- 		alias_warnx(file, line, column, strict, quiet,
+ 		parser_warnx(parse_tree->ctx, file, line, column, strict, quiet,
  		    N_("%s \"%s\" referenced but not defined"),
  		    alias_type_to_string(type), name);

@@ -1,5 +1,5 @@
 # bump: sudo-version /SUDO_VERSION="(.*)"/ https://www.sudo.ws/getting/source/|re:/sudo-([\d.]+p?\d?).tar.gz"/$1/
-SUDO_VERSION="1.9.13p3"
+SUDO_VERSION="1.9.15p5"
 
 export ZOPEN_BUILD_LINE="STABLE"
 export ZOPEN_DEV_URL="https://github.com/sudo-project/sudo.git"
@@ -18,7 +18,6 @@ export ZOPEN_COMP=CLANG # use clang
 
 zopen_check_results()
 {
-# Expected success rate should be 91.19%
 chk="$1/$2_check.log"
 
 successes=$(grep -e ".*: OK" ${chk} | wc -l)
@@ -28,7 +27,7 @@ totalRunTests=$(($successes+$failures))
 cat <<ZZ
 actualFailures:$failures
 totalTests:$totalRunTests
-expectedFailures:23
+expectedFailures:35
 ZZ
 }
 

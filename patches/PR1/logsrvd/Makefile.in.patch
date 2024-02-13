@@ -1,5 +1,5 @@
 diff --git a/logsrvd/Makefile.in b/logsrvd/Makefile.in
-index 2a1f0d1..374dccd 100644
+index 1c7e3ee..848e245 100644
 --- a/logsrvd/Makefile.in
 +++ b/logsrvd/Makefile.in
 @@ -49,7 +49,7 @@ LT_LIBS = $(top_builddir)/lib/iolog/libsudo_iolog.la \
@@ -10,4 +10,4 @@ index 2a1f0d1..374dccd 100644
 +LIBS = $(LT_LIBS) @LIBTLS@ @LIBS@
  
  # C preprocessor defines
- CPPDEFS = -D_PATH_SUDO_LOGSRVD_CONF=\"$(sysconfdir)/sudo_logsrvd.conf\" \
+ CPPDEFS = -D_PATH_SUDO_LOGSRVD_CONF=\"@sudo_logsrvd_conf@\" \

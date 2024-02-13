@@ -1,8 +1,8 @@
 diff --git a/src/sudo.c b/src/sudo.c
-index a8a18bb..17ceb9c 100644
+index 9d929e4..a8c0dc9 100644
 --- a/src/sudo.c
 +++ b/src/sudo.c
-@@ -140,6 +140,9 @@ static struct sudo_settings *sudo_settings;
+@@ -135,6 +135,9 @@ static struct sudo_settings *sudo_settings;
  static char * const *user_info, * const *submit_argv, * const *submit_envp;
  static int submit_optind;
  
@@ -12,7 +12,7 @@ index a8a18bb..17ceb9c 100644
  int
  main(int argc, char *argv[], char *envp[])
  {
-@@ -150,6 +153,10 @@ main(int argc, char *argv[], char *envp[])
+@@ -149,6 +152,10 @@ main(int argc, char *argv[], char *envp[])
      sigset_t mask;
      debug_decl_vars(main, SUDO_DEBUG_MAIN);
  
@@ -23,7 +23,7 @@ index a8a18bb..17ceb9c 100644
      /* Only allow "sudo" or "sudoedit" as the program name. */
      initprogname2(argc > 0 ? argv[0] : "sudo", allowed_prognames);
  
-@@ -496,6 +503,11 @@ done:
+@@ -503,6 +510,11 @@ done:
   * Return user information as an array of name=value pairs.
   * and fill in struct user_details (which shares the same strings).
   */

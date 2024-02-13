@@ -1,8 +1,8 @@
 diff --git a/plugins/sudoers/set_perms.c b/plugins/sudoers/set_perms.c
-index 77ce395..f0c6926 100644
+index 9f80094..4e97753 100644
 --- a/plugins/sudoers/set_perms.c
 +++ b/plugins/sudoers/set_perms.c
-@@ -939,6 +939,20 @@ set_perms(int perm)
+@@ -217,6 +217,20 @@ set_perms(const struct sudoers_context *ctx, int perm)
  		goto bad;
  	    }
  	}
@@ -20,10 +20,10 @@ index 77ce395..f0c6926 100644
 +      }
 +  }
 +#endif /* __MVS__ */
- 	state->ruid = ROOT_UID;
- 	state->euid = user_uid;
- 	sudo_debug_printf(SUDO_DEBUG_INFO, "%s: PERM_USER: uid: "
-@@ -953,6 +967,20 @@ set_perms(int perm)
+ 	state->ruid = ctx->user.uid;
+ 	state->euid = ctx->user.uid;
+ 	state->suid = ROOT_UID;
+@@ -234,6 +248,20 @@ set_perms(const struct sudoers_context *ctx, int perm)
  
      case PERM_FULL_USER:
  	/* headed for exec() */
@@ -41,10 +41,10 @@ index 77ce395..f0c6926 100644
 +      }
 +  }
 +#endif /* __MVS__ */
- 	state->rgid = user_gid;
- 	state->egid = user_gid;
- 	sudo_debug_printf(SUDO_DEBUG_INFO, "%s: PERM_FULL_USER: gid: "
-@@ -1000,6 +1028,19 @@ set_perms(int perm)
+ 	state->rgid = ctx->user.gid;
+ 	state->egid = ctx->user.gid;
+ 	state->sgid = ctx->user.gid;
+@@ -287,6 +315,19 @@ set_perms(const struct sudoers_context *ctx, int perm)
  	    errstr = N_("unable to set runas group vector");
  	    goto bad;
  	}
@@ -61,21 +61,21 @@ index 77ce395..f0c6926 100644
 +  }
 +#endif /* __MVS__ */
 +#ifndef __MVS__
- 	state->ruid = ROOT_UID;
- 	state->euid = runas_pw ? runas_pw->pw_uid : user_uid;
- 	sudo_debug_printf(SUDO_DEBUG_INFO, "%s: PERM_RUNAS: uid: "
-@@ -1009,6 +1050,7 @@ set_perms(int perm)
+ 	state->ruid = ostate->ruid;
+ 	state->euid = ctx->runas.pw ? ctx->runas.pw->pw_uid : ctx->user.uid;
+ 	state->suid = ostate->suid;
+@@ -298,6 +339,7 @@ set_perms(const struct sudoers_context *ctx, int perm)
  	    errstr = N_("unable to change to runas uid");
  	    goto bad;
  	}
 +#endif
  	break;
  
-     case PERM_SUDOERS:
-@@ -1052,6 +1094,19 @@ set_perms(int perm)
- 	sudo_gidlist_addref(state->gidlist);
+     case PERM_SUDOERS: {
+@@ -351,6 +393,19 @@ set_perms(const struct sudoers_context *ctx, int perm)
  	state->rgid = ostate->rgid;
  	state->egid = ostate->egid;
+ 	state->sgid = ostate->sgid;
 +#ifdef __MVS__
 +        /* can't change EUID directly */
 +        if (ostate->euid == ROOT_UID)
@@ -90,9 +90,34 @@ index 77ce395..f0c6926 100644
 +        }
 +#endif /* __MVS__ */
  	state->ruid = ROOT_UID;
- 	state->euid = timestamp_uid;
- 	sudo_debug_printf(SUDO_DEBUG_INFO, "%s: PERM_TIMESTAMP: uid: "
-@@ -1080,6 +1135,10 @@ bool
+ 	state->euid = timestamp_get_uid();
+ 	state->suid = ROOT_UID;
+@@ -1054,8 +1109,23 @@ set_perms(const struct sudoers_context *ctx, int perm)
+ 	 * we use a non-zero uid in order to avoid NFS lossage.
+ 	 * Using uid 1 is a bit bogus but should work on all OS's.
+ 	 */
+-	if (sudoers_uid == ROOT_UID && (sudoers_mode & S_IRGRP))
++	if (sudoers_uid == ROOT_UID && (sudoers_mode & S_IRGRP)) {
++#ifdef __MVS__
++      /* uid 1 may not exist on z/OS, find the first non-zero uid */
++      struct passwd *pwd;
++      state->euid = -1;
++      setpwent();
++      while ((pwd = getpwent()) != NULL) {
++          if (pwd->pw_uid > 0) {
++              state->euid = pwd->pw_uid;
++              break;
++          }
++      }
++      endpwent();
++#else
+ 	    state->euid = 1;
++#endif
++  }
+ 	else
+ 	    state->euid = sudoers_uid;
+ 	sudo_debug_printf(SUDO_DEBUG_INFO, "%s: PERM_SUDOERS: uid: "
+@@ -1103,6 +1173,10 @@ bool
  restore_perms(void)
  {
      struct perm_state *state, *ostate;
@@ -103,7 +128,7 @@ index 77ce395..f0c6926 100644
      debug_decl(restore_perms, SUDOERS_DEBUG_PERMS);
  
      if (perm_stack_depth < 2) {
-@@ -1117,11 +1176,33 @@ restore_perms(void)
+@@ -1140,11 +1214,33 @@ restore_perms(void)
  	    goto bad;
  	}
      }

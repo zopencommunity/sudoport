@@ -1,5 +1,5 @@
 diff --git a/lib/util/progname.c b/lib/util/progname.c
-index a5f93b2..9b45e9d 100644
+index 9355b6a..c2b59ef 100644
 --- a/lib/util/progname.c
 +++ b/lib/util/progname.c
 @@ -34,7 +34,7 @@

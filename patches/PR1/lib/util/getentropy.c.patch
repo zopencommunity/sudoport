@@ -1,5 +1,5 @@
 diff --git a/lib/util/getentropy.c b/lib/util/getentropy.c
-index dc5c91c..ada798b 100644
+index 5daf0f7..15df24a 100644
 --- a/lib/util/getentropy.c
 +++ b/lib/util/getentropy.c
 @@ -29,7 +29,9 @@
@@ -28,7 +28,7 @@ index dc5c91c..ada798b 100644
  	return mmap(addr, len, prot, flags | MAP_ANON, -1, offset);
  #else
  	int fd;
-@@ -543,7 +552,11 @@ getentropy_fallback(void *buf, size_t len)
+@@ -550,7 +559,11 @@ getentropy_fallback(void *buf, size_t len)
  
  				for (m = 0; m < sizeof mm/sizeof(mm[0]); m++) {
  					if (mm[m].p != MAP_FAILED)

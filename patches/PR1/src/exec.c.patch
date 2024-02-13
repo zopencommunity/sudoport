@@ -1,5 +1,5 @@
 diff --git a/src/exec.c b/src/exec.c
-index f8856b4..b2e8463 100644
+index 46fc8bc..d10c460 100644
 --- a/src/exec.c
 +++ b/src/exec.c
 @@ -205,11 +205,25 @@ exec_setup(struct command_details *details, int intercept_fd, int errfd)

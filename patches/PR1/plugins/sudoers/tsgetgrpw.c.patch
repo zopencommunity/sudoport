@@ -1,5 +1,5 @@
 diff --git a/plugins/sudoers/tsgetgrpw.c b/plugins/sudoers/tsgetgrpw.c
-index 19fb798..33e8a15 100644
+index 2a779ba..393216a 100644
 --- a/plugins/sudoers/tsgetgrpw.c
 +++ b/plugins/sudoers/tsgetgrpw.c
 @@ -136,7 +136,9 @@ next_entry:

@@ -1,16 +1,8 @@
 diff --git a/lib/util/mmap_alloc.c b/lib/util/mmap_alloc.c
-index cd678a0..6ae5578 100644
+index b587338..f75e0d3 100644
 --- a/lib/util/mmap_alloc.c
 +++ b/lib/util/mmap_alloc.c
-@@ -35,6 +35,7 @@
- #elif defined(HAVE_INTTYPES_H)
- # include <inttypes.h>
- #endif
-+#include <fcntl.h>
- 
- #include "sudo_compat.h"
- #include "sudo_util.h"
-@@ -62,7 +63,16 @@ sudo_mmap_alloc_v1(size_t size)
+@@ -62,7 +62,16 @@ sudo_mmap_alloc_v1(size_t size)
  {
      void *ptr;
      unsigned long *ulp;
@@ -28,7 +20,7 @@ index cd678a0..6ae5578 100644
      int fd;
  
      /* SunOS-style mmap allocation using /dev/zero. */
-@@ -131,6 +141,10 @@ sudo_mmap_strdup_v1(const char *str)
+@@ -131,6 +140,10 @@ sudo_mmap_strdup_v1(const char *str)
  int
  sudo_mmap_protect_v1(void *ptr)
  {
@@ -39,7 +31,7 @@ index cd678a0..6ae5578 100644
      if (ptr != NULL) {
  	unsigned long *ulp = ptr;
  	const unsigned long size = ulp[-1];
-@@ -154,7 +168,11 @@ sudo_mmap_free_v1(void *ptr)
+@@ -154,7 +167,11 @@ sudo_mmap_free_v1(void *ptr)
  	const unsigned long size = ulp[0];
  	int saved_errno = errno;
  

@@ -1,9 +1,9 @@
 diff --git a/lib/util/sig2str.c b/lib/util/sig2str.c
-index 1d86021..19a24c5 100644
+index 11acc5e..d343d90 100644
 --- a/lib/util/sig2str.c
 +++ b/lib/util/sig2str.c
 @@ -35,6 +35,251 @@
- #include "sudo_util.h"
+ #include <sudo_util.h>
  
  #if !defined(HAVE_SIGABBREV_NP)
 +# if defined(__MVS__)
