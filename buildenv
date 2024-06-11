@@ -3,12 +3,13 @@ SUDO_VERSION="1.9.15p5"
 
 export ZOPEN_BUILD_LINE="STABLE"
 export ZOPEN_DEV_URL="https://github.com/sudo-project/sudo.git"
-export ZOPEN_DEV_DEPS="make coreutils zoslib openssl zlib gawk"
+export ZOPEN_DEV_DEPS="make coreutils zoslib openssl zlib gawk openssl"
 export ZOPEN_STABLE_URL="https://www.sudo.ws/dist/sudo-$SUDO_VERSION.tar.gz"
-export ZOPEN_STABLE_DEPS="make coreutils zoslib openssl zlib gawk"
+export ZOPEN_STABLE_DEPS="make coreutils zoslib openssl zlib gawk openssl"
 
-#TODO: add zlib, openssl
-export ZOPEN_EXTRA_CONFIGURE_OPTS="--without-interfaces --with-runas-default=BPXROOT"
+export ZOPEN_EXTRA_CPPFLAGS="-I\${OPENSSL_HOME}/include -I\${ZLIB_HOME}/include"
+
+export ZOPEN_EXTRA_CONFIGURE_OPTS="--without-interfaces --with-runas-default=BPXROOT --enable-openssl --enable-static-sudoers"
 export ZOPEN_MAKE_MINIMAL="yes"
 export ZOPEN_MAKE_OPTS="-j\$ZOPEN_NUM_JOBS"
 export ZOPEN_CHECK_MINIMAL="yes"
@@ -40,7 +41,6 @@ EOF
 
 zopen_post_install()
 {
-  #TODO: consideration: remove world access to sbin directory?
 }
 
 zopen_append_to_setup()
@@ -50,23 +50,16 @@ cat <<EOF
  echo "IMPORTANT NOTE: Installation of sudo is NOT COMPLETE.                           "
  echo "For details on sudo, see: https://www.sudo.ws/releases/stable/#${SUDO_VERSION}  "
  echo "To finish installing sudo, run the following commands with elevated privileges: "
- echo "BIN_SUDO='cvtsudoers sudo sudoedit sudoreplay'"
- echo "SBIN_SUDO='sudo_logsrvd sudo_sendlog visudo'"
- echo "SUDO_INSTALL_LOCAL=\$SUDO_HOME"
+ echo "SUDO_HOME=\$SUDO_HOME"
 EOF
 cat <<'EOF'
- echo "cd \$SUDO_INSTALL_LOCAL/bin"
- echo "cp \$BIN_SUDO /usr/bin/"
- echo "cd \$SUDO_INSTALL_LOCAL/sbin"
- echo "cp \$SBIN_SUDO /usr/sbin/"
- echo "cd /usr/bin"
- echo "chown 0:0 \$BIN_SUDO"
- echo "cd /usr/sbin"
- echo "chmod u+s \$SBIN_SUDO"
- echo "Review the \$SUDO_INSTALL_LOCAL/etc/sudoers file."
+ echo "chown 0:0 \$SUDO_HOME/bin/*"
+ echo "Review the \$SUDO_HOME/etc/sudoers file."
  echo "Use visudo to create your own /etc/sudoers file."
  echo "================================================================================"
 EOF
+ echo "chmod 4755 \"\$SUDO_HOME/bin/\"*"
+ echo "chmod 4750 \"\$SUDO_HOME/sbin/\"*"
 }
 
 zopen_install_caveats()
@@ -76,20 +69,11 @@ cat <<EOF
  echo "IMPORTANT NOTE: Installation of sudo is NOT COMPLETE.                           "
  echo "For details on sudo, see: https://www.sudo.ws/releases/stable/#${SUDO_VERSION}  "
  echo "To finish installing sudo, run the following commands with elevated privileges: "
- echo "BIN_SUDO='cvtsudoers sudo sudoedit sudoreplay'"
- echo "SBIN_SUDO='sudo_logsrvd sudo_sendlog visudo'"
- echo "SUDO_INSTALL_LOCAL=\$SUDO_HOME"
+ echo "SUDO_HOME=\$SUDO_HOME"
 EOF
 cat <<'EOF'
- echo "cd \$SUDO_INSTALL_LOCAL/bin"
- echo "cp \$BIN_SUDO /usr/bin/"
- echo "cd \$SUDO_INSTALL_LOCAL/sbin"
- echo "cp \$SBIN_SUDO /usr/sbin/"
- echo "cd /usr/bin"
- echo "chown 0:0 \$BIN_SUDO"
- echo "cd /usr/sbin"
- echo "chmod u+s \$SBIN_SUDO"
- echo "Review the \$SUDO_INSTALL_LOCAL/etc/sudoers file."
+ echo "chown 0:0 \$SUDO_HOME/bin/*"
+ echo "Review the \$SUDO_HOME/etc/sudoers file."
  echo "Use visudo to create your own /etc/sudoers file."
  echo "================================================================================"
 EOF
