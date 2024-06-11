@@ -1,0 +1,26 @@
+diff --git a/src/get_pty.c b/src/get_pty.c
+index 666a295..d300c8e 100644
+--- a/src/get_pty.c
++++ b/src/get_pty.c
+@@ -35,6 +35,9 @@
+ #include <errno.h>
+ #include <fcntl.h>
+ #include <grp.h>
++#ifdef __MVS__
++#include <_Nascii.h>
++#endif
+ 
+ #if defined(HAVE_OPENPTY)
+ # if defined(HAVE_LIBUTIL_H)
+@@ -117,6 +120,11 @@ get_pty(int *leader, int *follower, uid_t ttyuid)
+ 
+     *leader = posix_openpt(O_RDWR|O_NOCTTY);
+     if (*leader != -1) {
++#ifdef __MVS__
++    // Needed for z/OS so that the characters are not garbled if ptyp* is untagged
++    struct f_cnvrt cvtreq = {SETCVTON, 0, 1047};
++    fcntl(*leader, F_CONTROL_CVT, &cvtreq);
++#endif
+ 	(void) grantpt(*leader); /* may fork */
+ 	if (unlockpt(*leader) != 0) {
+ 	    close(*leader);
