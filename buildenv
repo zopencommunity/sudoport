@@ -65,17 +65,15 @@ EOF
 zopen_install_caveats()
 {
 cat <<EOF
- echo "================================================================================"
- echo "IMPORTANT NOTE: Installation of sudo is NOT COMPLETE.                           "
- echo "For details on sudo, see: https://www.sudo.ws/releases/stable/#${SUDO_VERSION}  "
- echo "To finish installing sudo, run the following commands with elevated privileges: "
- echo "SUDO_HOME=\$SUDO_HOME"
-EOF
-cat <<'EOF'
- echo "chown 0:0 \$SUDO_HOME/bin/*"
- echo "Review the \$SUDO_HOME/etc/sudoers file."
- echo "Use visudo to create your own /etc/sudoers file."
- echo "================================================================================"
+IMPORTANT NOTE: Installation of sudo is NOT COMPLETE.
+
+For details on sudo, see: https://www.sudo.ws/releases/stable/#${SUDO_VERSION} 
+To finish installing sudo, run the following commands with elevated privileges (root): "
+SUDO_HOME=\$ZOPEN_PKGINSTALL/sudo/sudo
+chown 0:0 \$SUDO_HOME/bin/*
+chmod 4755 \$SUDO_HOME/bin/*
+Review the \$SUDO_HOME/etc/sudoers file.
+Use visudo to create your own /etc/sudoers file.
 EOF
 }
 
