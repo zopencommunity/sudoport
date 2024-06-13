@@ -1,5 +1,5 @@
 diff --git a/plugins/sudoers/set_perms.c b/plugins/sudoers/set_perms.c
-index 9f80094..4e97753 100644
+index 9f80094..ccc4646 100644
 --- a/plugins/sudoers/set_perms.c
 +++ b/plugins/sudoers/set_perms.c
 @@ -217,6 +217,20 @@ set_perms(const struct sudoers_context *ctx, int perm)
@@ -92,7 +92,15 @@ index 9f80094..4e97753 100644
  	state->ruid = ROOT_UID;
  	state->euid = timestamp_get_uid();
  	state->suid = ROOT_UID;
-@@ -1054,8 +1109,23 @@ set_perms(const struct sudoers_context *ctx, int perm)
+@@ -1048,14 +1103,31 @@ set_perms(const struct sudoers_context *ctx, int perm)
+ 	    goto bad;
+ 	}
+ 
++/*TODO: avoid for now due to setreuid issue */
++#ifndef __MVS__
+ 	state->ruid = ROOT_UID;
+ 	/*
+ 	 * If sudoers_uid == ROOT_UID and sudoers_mode is group readable
  	 * we use a non-zero uid in order to avoid NFS lossage.
  	 * Using uid 1 is a bit bogus but should work on all OS's.
  	 */
@@ -117,7 +125,15 @@ index 9f80094..4e97753 100644
  	else
  	    state->euid = sudoers_uid;
  	sudo_debug_printf(SUDO_DEBUG_INFO, "%s: PERM_SUDOERS: uid: "
-@@ -1103,6 +1173,10 @@ bool
+@@ -1067,6 +1139,7 @@ set_perms(const struct sudoers_context *ctx, int perm)
+ 		(int)ID(ruid), (int)ID(euid));
+ 	    goto bad;
+ 	}
++#endif
+ 	break;
+     }
+ 
+@@ -1103,6 +1176,10 @@ bool
  restore_perms(void)
  {
      struct perm_state *state, *ostate;
@@ -128,7 +144,7 @@ index 9f80094..4e97753 100644
      debug_decl(restore_perms, SUDOERS_DEBUG_PERMS);
  
      if (perm_stack_depth < 2) {
-@@ -1140,11 +1214,33 @@ restore_perms(void)
+@@ -1140,11 +1217,33 @@ restore_perms(void)
  	    goto bad;
  	}
      }
