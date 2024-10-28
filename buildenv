@@ -2,6 +2,7 @@
 SUDO_VERSION="1.9.15p5"
 
 export ZOPEN_BUILD_LINE="STABLE"
+export ZOPEN_CATEGORIES="core"
 export ZOPEN_DEV_URL="https://github.com/sudo-project/sudo.git"
 export ZOPEN_DEV_DEPS="make coreutils zoslib openssl zlib gawk openssl"
 export ZOPEN_STABLE_URL="https://www.sudo.ws/dist/sudo-$SUDO_VERSION.tar.gz"
