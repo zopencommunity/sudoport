@@ -1,12 +1,12 @@
 # bump: sudo-version /SUDO_VERSION="(.*)"/ https://www.sudo.ws/getting/source/|re:/sudo-([\d.]+p?\d?).tar.gz"/$1/
-SUDO_VERSION="1.9.15p5"
+SUDO_VERSION="1.9.16p2"
 
 export ZOPEN_BUILD_LINE="STABLE"
 export ZOPEN_CATEGORIES="core"
 export ZOPEN_DEV_URL="https://github.com/sudo-project/sudo.git"
-export ZOPEN_DEV_DEPS="make coreutils zoslib openssl zlib gawk openssl"
+export ZOPEN_DEV_DEPS="make coreutils zoslib openssl zlib gawk openssl getopt"
 export ZOPEN_STABLE_URL="https://www.sudo.ws/dist/sudo-$SUDO_VERSION.tar.gz"
-export ZOPEN_STABLE_DEPS="make coreutils zoslib openssl zlib gawk openssl"
+export ZOPEN_STABLE_DEPS="make coreutils zoslib openssl zlib gawk openssl getopt"
 
 export ZOPEN_EXTRA_CPPFLAGS="-I\${OPENSSL_HOME}/include -I\${ZLIB_HOME}/include"
 
