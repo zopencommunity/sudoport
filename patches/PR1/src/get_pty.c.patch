@@ -1,5 +1,5 @@
 diff --git a/src/get_pty.c b/src/get_pty.c
-index 666a295..f229f5f 100644
+index 666a295..d300c8e 100644
 --- a/src/get_pty.c
 +++ b/src/get_pty.c
 @@ -35,6 +35,9 @@
@@ -12,26 +12,6 @@ index 666a295..f229f5f 100644
  
  #if defined(HAVE_OPENPTY)
  # if defined(HAVE_LIBUTIL_H)
-@@ -50,7 +53,7 @@
- 
- #include <sudo.h>
- 
--#if defined(HAVE_OPENPTY)
-+#if defined(HAVE_OPENPTY) && !defined(__MVS__)
- char *
- get_pty(int *leader, int *follower, uid_t ttyuid)
- {
-@@ -93,8 +96,8 @@ get_pty(int *leader, int *follower, uid_t ttyuid)
-     }
-     debug_return_str(ret);
- }
--#elif defined(HAVE_GRANTPT)
--# ifndef HAVE_POSIX_OPENPT
-+#elif defined(HAVE_GRANTPT) || defined(__MVS__)
-+# if !defined(HAVE_POSIX_OPENPT ) && !defined(__MVS__)
- static int
- posix_openpt(int oflag)
- {
 @@ -117,6 +120,11 @@ get_pty(int *leader, int *follower, uid_t ttyuid)
  
      *leader = posix_openpt(O_RDWR|O_NOCTTY);
@@ -44,9 +24,3 @@ index 666a295..f229f5f 100644
  	(void) grantpt(*leader); /* may fork */
  	if (unlockpt(*leader) != 0) {
  	    close(*leader);
-@@ -186,4 +194,5 @@ get_pty(int *leader, int *follower, uid_t ttyuid)
- done:
-     debug_return_str(ret);
- }
-+#error "IGOR3"
- #endif /* HAVE_OPENPTY */
