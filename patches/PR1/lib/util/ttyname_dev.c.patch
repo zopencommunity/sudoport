@@ -1,0 +1,15 @@
+diff --git a/lib/util/ttyname_dev.c b/lib/util/ttyname_dev.c
+index 9b98df8..37d054b 100644
+--- a/lib/util/ttyname_dev.c
++++ b/lib/util/ttyname_dev.c
+@@ -38,6 +38,10 @@
+ #include <fcntl.h>
+ #include <limits.h>
+ #include <dirent.h>
++#ifdef __MVS__
++/* z/OS V2R5 libc has dirfd() but dirent.h does not declare it with our feature macros */
++extern int dirfd(DIR *);
++#endif
+ 
+ #include <pathnames.h>
+ #include <sudo_compat.h>
