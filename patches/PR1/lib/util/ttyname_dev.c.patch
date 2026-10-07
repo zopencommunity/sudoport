@@ -1,15 +1,17 @@
 diff --git a/lib/util/ttyname_dev.c b/lib/util/ttyname_dev.c
-index 9b98df8..37d054b 100644
+index 9b98df8..1ebe93b 100644
 --- a/lib/util/ttyname_dev.c
 +++ b/lib/util/ttyname_dev.c
-@@ -38,6 +38,10 @@
- #include <fcntl.h>
- #include <limits.h>
- #include <dirent.h>
-+#ifdef __MVS__
-+/* z/OS V2R5 libc has dirfd() but dirent.h does not declare it with our feature macros */
-+extern int dirfd(DIR *);
-+#endif
+@@ -130,7 +130,12 @@ sudo_ttyname_scan(const char *dir, dev_t rdev, char *name, size_t namelen)
+     if ((d = opendir(dir)) == NULL)
+ 	goto done;
  
- #include <pathnames.h>
- #include <sudo_compat.h>
++#ifdef __MVS__
++    /* dirfd() is not available on z/OS before V2R5 */
++    if (stat(dir, &sb) == -1) {
++#else
+     if (fstat(dirfd(d), &sb) == -1) {
++#endif
+ 	sudo_debug_printf(SUDO_DEBUG_ERROR|SUDO_DEBUG_LINENO,
+ 	    "unable to fstat %s", dir);
+ 	goto done;
