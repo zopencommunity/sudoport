@@ -47,36 +47,31 @@ zopen_post_install()
 
 zopen_append_to_setup()
 {
-cat <<EOF
- echo "================================================================================"
- echo "IMPORTANT NOTE: Installation of sudo is NOT COMPLETE.                           "
- echo "For details on sudo, see: https://www.sudo.ws/releases/stable/#${SUDO_VERSION}  "
- echo "To finish installing sudo, run the following commands with elevated privileges: "
- echo "SUDO_HOME=\$SUDO_HOME"
-EOF
 cat <<'EOF'
- echo "chown 0:0 \$SUDO_HOME/bin/*"
- echo "chmod u+s \$SUDO_HOME/bin/*"
- echo "Review the \$SUDO_HOME/etc/sudoers file."
- echo "Use visudo to create your own /etc/sudoers file."
- echo "================================================================================"
+echo "================================================================================"
+echo "IMPORTANT NOTE: Installation of sudo is NOT COMPLETE."
+echo "To finish installing sudo, run the following as root (UID 0):"
+echo "  chown 0 \"$SUDO_HOME/bin/sudo\" \"$SUDO_HOME/etc/sudoers\""
+echo "  chmod 4111 \"$SUDO_HOME/bin/sudo\""
+echo "  chmod 0440 \"$SUDO_HOME/etc/sudoers\""
+echo "Then edit the sudoers file with: $SUDO_HOME/sbin/visudo"
+echo "================================================================================"
 EOF
- echo "chmod 4755 \"\$SUDO_HOME/bin/\"*"
- echo "chmod 4750 \"\$SUDO_HOME/sbin/\"*"
 }
 
 zopen_install_caveats()
 {
 cat <<EOF
 IMPORTANT NOTE: Installation of sudo is NOT COMPLETE.
+For details on sudo, see: https://www.sudo.ws/releases/stable/#${SUDO_VERSION}
+To finish installing sudo, run the following as root (UID 0):
 
-For details on sudo, see: https://www.sudo.ws/releases/stable/#${SUDO_VERSION} 
-To finish installing sudo, run the following commands with elevated privileges (root): "
-SUDO_HOME=\$ZOPEN_PKGINSTALL/sudo/sudo
-chown 0:0 \$SUDO_HOME/bin/*
-chmod u+s \$SUDO_HOME/bin/*
-Review the \$SUDO_HOME/etc/sudoers file.
-Use visudo to create your own /etc/sudoers file.
+  SUDO_HOME=\$ZOPEN_PKGINSTALL/sudo/sudo
+  chown 0 "\${SUDO_HOME:?}/bin/sudo" "\${SUDO_HOME:?}/etc/sudoers"
+  chmod 4111 "\${SUDO_HOME:?}/bin/sudo"
+  chmod 0440 "\${SUDO_HOME:?}/etc/sudoers"
+
+Then edit the sudoers file with: \$SUDO_HOME/sbin/visudo
 EOF
 }
 
