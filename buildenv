@@ -51,10 +51,13 @@ cat <<'EOF'
 echo "================================================================================"
 echo "IMPORTANT NOTE: Installation of sudo is NOT COMPLETE."
 echo "To finish installing sudo, run the following as root (UID 0):"
-echo "  chown 0 \"$SUDO_HOME/bin/sudo\" \"$SUDO_HOME/etc/sudoers\""
+echo "  chown 0 \"$SUDO_HOME/bin/sudo\""
 echo "  chmod 4111 \"$SUDO_HOME/bin/sudo\""
-echo "  chmod 0440 \"$SUDO_HOME/etc/sudoers\""
-echo "Then edit the sudoers file with: $SUDO_HOME/sbin/visudo"
+echo "  [ -f /etc/sudoers ] || cp \"$SUDO_HOME/etc/sudoers\" /etc/sudoers"
+echo "  chown 0 /etc/sudoers"
+echo "  chmod 0440 /etc/sudoers"
+echo "Then edit /etc/sudoers with: $SUDO_HOME/sbin/visudo"
+echo "A RACF group with GID 0 is not required."
 echo "================================================================================"
 EOF
 }
@@ -67,11 +70,14 @@ For details on sudo, see: https://www.sudo.ws/releases/stable/#${SUDO_VERSION}
 To finish installing sudo, run the following as root (UID 0):
 
   SUDO_HOME=\$ZOPEN_PKGINSTALL/sudo/sudo
-  chown 0 "\${SUDO_HOME:?}/bin/sudo" "\${SUDO_HOME:?}/etc/sudoers"
+  chown 0 "\${SUDO_HOME:?}/bin/sudo"
   chmod 4111 "\${SUDO_HOME:?}/bin/sudo"
-  chmod 0440 "\${SUDO_HOME:?}/etc/sudoers"
+  [ -f /etc/sudoers ] || cp "\${SUDO_HOME:?}/etc/sudoers" /etc/sudoers
+  chown 0 /etc/sudoers
+  chmod 0440 /etc/sudoers
 
-Then edit the sudoers file with: \$SUDO_HOME/sbin/visudo
+Then edit /etc/sudoers with: \$SUDO_HOME/sbin/visudo
+sudo reads /etc/sudoers and /etc/sudo.conf. A RACF group with GID 0 is not required.
 EOF
 }
 
